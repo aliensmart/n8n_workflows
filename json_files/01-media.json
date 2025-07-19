@@ -1,0 +1,514 @@
+{
+  "name": "Agentic Social Media Poster - Short Posts with Comments Focus",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "agentic-telegram",
+        "responseMode": "responseNode"
+      },
+      "id": "webhook-trigger",
+      "name": "🤖 Telegram Agent Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 400]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🧠 Enhanced Agentic Parser - Short Posts + Comments Focus\nconst telegramData = $input.first().json;\nconst message = telegramData.message || {};\nconst messageText = message.text || '';\nconst userId = message.from?.id;\nconst chatId = message.chat?.id;\nconst messageId = message.message_id;\nconst files = message.document || message.photo || message.video || message.audio;\nconst timestamp = new Date().toISOString();\n\n// Enhanced Agent Configuration for Short Posts\nconst AGENT_CONFIG = {\n  autonomyLevel: 'high',\n  autoApprovalThreshold: 80,\n  focusFormat: 'short_post_with_comment', // Main focus\n  defaultPlatforms: ['Facebook', 'Twitter'],\n  randomScheduling: true,\n  trendingTopicFilling: true,\n  humanReadableOutput: true,\n  defaultLanguage: 'french'\n};\n\n// Short Post Platform Configuration\nconst PLATFORM_CONFIG = {\n  'Facebook': {\n    shortPostLength: 150,\n    commentLength: 500,\n    tone: 'engaging',\n    hashtagLimit: 5,\n    optimalTimes: ['08:00', '12:00', '18:00', '20:00']\n  },\n  'Twitter': {\n    shortPostLength: 200,\n    commentLength: 400,\n    tone: 'concise',\n    hashtagLimit: 3,\n    optimalTimes: ['09:00', '13:00', '17:00', '21:00']\n  },\n  'LinkedIn': {\n    shortPostLength: 180,\n    commentLength: 600,\n    tone: 'professional',\n    hashtagLimit: 4,\n    optimalTimes: ['08:00', '12:00', '17:00']\n  },\n  'Instagram': {\n    shortPostLength: 160,\n    commentLength: 450,\n    tone: 'inspirational',\n    hashtagLimit: 10,\n    optimalTimes: ['11:00', '14:00', '19:00']\n  }\n};\n\n// Content Categories for Short Posts\nconst CONTENT_CATEGORIES = {\n  'life_wisdom': {\n    keywords: ['vie', 'wisdom', 'choix', 'decision', 'sagesse', 'experience'],\n    tone: 'reflective',\n    engagement_style: 'thought_provoking'\n  },\n  'motivation': {\n    keywords: ['motivation', 'success', 'effort', 'objectif', 'rêve', 'réussir'],\n    tone: 'inspiring',\n    engagement_style: 'empowering'\n  },\n  'business_insight': {\n    keywords: ['business', 'entrepreneur', 'strategy', 'leadership', 'innovation'],\n    tone: 'authoritative',\n    engagement_style: 'educational'\n  },\n  'personal_development': {\n    keywords: ['développement', 'growth', 'mindset', 'habitude', 'discipline'],\n    tone: 'encouraging',\n    engagement_style: 'actionable'\n  },\n  'relationships': {\n    keywords: ['relation', 'amitié', 'famille', 'confiance', 'communication'],\n    tone: 'warm',\n    engagement_style: 'relatable'\n  }\n};\n\n// Special Commands for Short Post Format\nconst SHORT_POST_COMMANDS = {\n  'SP': { action: 'short_posts_generation', count: 5, focus: 'varied' },\n  'QSP': { action: 'quote_short_posts', count: 6, focus: 'wisdom' },\n  'MSP': { action: 'motivational_short_posts', count: 4, focus: 'inspiration' },\n  'BSP': { action: 'business_short_posts', count: 5, focus: 'insights' },\n  'TSP': { action: 'trending_short_posts', count: 3, focus: 'current' },\n  'FILL': { action: 'fill_empty_slots', count: 'auto', focus: 'trending' }\n};\n\n// Advanced Command Detection\nfunction detectCommandAndIntent(text) {\n  const upperText = text.toUpperCase();\n  \n  // Check for explicit short post commands\n  for (const [cmd, config] of Object.entries(SHORT_POST_COMMANDS)) {\n    if (upperText.startsWith(cmd)) {\n      const countMatch = text.match(/count:\\s*(\\d+)|\\b(\\d+)\\s*(post|message)/i);\n      const count = countMatch ? parseInt(countMatch[1] || countMatch[2]) : config.count;\n      \n      return {\n        command: cmd,\n        action: config.action,\n        contentCount: count === 'auto' ? 'auto' : Math.min(Math.max(count, 3), 8),\n        focus: config.focus,\n        isExplicitCommand: true\n      };\n    }\n  }\n  \n  // Natural language detection for short posts\n  const shortPostIndicators = [\n    'court', 'short', 'quick', 'rapide', 'bref',\n    'commentaire', 'comment', 'explication',\n    'variation', 'versions', 'différent'\n  ];\n  \n  const hasShortPostIntent = shortPostIndicators.some(indicator => \n    text.toLowerCase().includes(indicator)\n  );\n  \n  // Content type detection\n  let contentFocus = 'varied';\n  if (text.toLowerCase().includes('motivation') || text.toLowerCase().includes('inspire')) {\n    contentFocus = 'motivation';\n  } else if (text.toLowerCase().includes('business') || text.toLowerCase().includes('entrepreneur')) {\n    contentFocus = 'business';\n  } else if (text.toLowerCase().includes('quote') || text.toLowerCase().includes('citation')) {\n    contentFocus = 'wisdom';\n  }\n  \n  return {\n    command: hasShortPostIntent ? 'SP' : 'AUTO',\n    action: 'short_posts_generation',\n    contentCount: hasShortPostIntent ? 5 : 4,\n    focus: contentFocus,\n    isExplicitCommand: false\n  };\n}\n\n// Content Analysis for Short Post Optimization\nfunction analyzeContentForShortPosts(content) {\n  const lowerContent = content.toLowerCase();\n  \n  // Category detection\n  let detectedCategory = 'life_wisdom'; // default\n  let maxScore = 0;\n  \n  for (const [category, config] of Object.entries(CONTENT_CATEGORIES)) {\n    const score = config.keywords.filter(keyword => \n      lowerContent.includes(keyword)\n    ).length;\n    \n    if (score > maxScore) {\n      maxScore = score;\n      detectedCategory = category;\n    }\n  }\n  \n  // Quality indicators for short posts\n  const qualityFactors = {\n    hasMetaphor: /comme|tel que|à la manière|ressemble/.test(lowerContent),\n    hasQuestion: /\\?/.test(content),\n    hasNumbers: /\\d+/.test(content),\n    hasEmotionalWords: /(vie|mort|amour|peur|rêve|échec|succès)/.test(lowerContent),\n    hasActionWords: /(choix|décision|action|effort|lutte)/.test(lowerContent),\n    properLength: content.length > 30 && content.length < 500,\n    hasContrast: /(mais|cependant|pourtant|tandis que)/.test(lowerContent)\n  };\n  \n  const qualityScore = Object.values(qualityFactors).filter(Boolean).length * 12;\n  \n  return {\n    category: detectedCategory,\n    categoryConfig: CONTENT_CATEGORIES[detectedCategory],\n    qualityScore: Math.min(100, qualityScore + 40), // Base 40 + factors\n    qualityFactors,\n    wordCount: content.split(' ').length,\n    hasQuoteStructure: content.includes('…') || content.includes('...'),\n    emotionalIntensity: (lowerContent.match(/(jamais|toujours|tout|rien|énorme|terrible|magnifique)/g) || []).length\n  };\n}\n\n// Smart Random Scheduling for Variety\nfunction generateRandomSchedule(count, avoidSameDay = true) {\n  const now = new Date();\n  const schedules = [];\n  const usedDays = new Set();\n  \n  // Platform optimal times\n  const allOptimalTimes = [\n    ...PLATFORM_CONFIG.Facebook.optimalTimes,\n    ...PLATFORM_CONFIG.Twitter.optimalTimes\n  ].filter((time, index, arr) => arr.indexOf(time) === index);\n  \n  for (let i = 0; i < count; i++) {\n    let attempts = 0;\n    let scheduleDate;\n    \n    do {\n      // Random day within next 2-4 weeks\n      const daysOffset = Math.floor(Math.random() * 28) + 1;\n      scheduleDate = new Date(now);\n      scheduleDate.setDate(now.getDate() + daysOffset);\n      \n      // Skip weekends 30% of the time for variety\n      const isWeekend = scheduleDate.getDay() === 0 || scheduleDate.getDay() === 6;\n      if (isWeekend && Math.random() < 0.3) {\n        attempts++;\n        continue;\n      }\n      \n      const dayKey = scheduleDate.toDateString();\n      \n      if (!avoidSameDay || !usedDays.has(dayKey) || attempts > 15) {\n        // Random optimal time\n        const randomTime = allOptimalTimes[Math.floor(Math.random() * allOptimalTimes.length)];\n        const [hours, minutes] = randomTime.split(':').map(Number);\n        \n        scheduleDate.setHours(hours, minutes + Math.floor(Math.random() * 30), 0, 0);\n        \n        if (avoidSameDay) {\n          usedDays.add(dayKey);\n        }\n        break;\n      }\n      attempts++;\n    } while (attempts <= 20);\n    \n    schedules.push(scheduleDate.toISOString());\n  }\n  \n  return schedules.sort();\n}\n\n// Generate unique ID\nconst generateAgentId = () => {\n  return `agent_short_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n};\n\n// Main Processing\nconst agentId = generateAgentId();\nconst commandAnalysis = detectCommandAndIntent(messageText);\nconst contentAnalysis = analyzeContentForShortPosts(messageText);\n\n// Generate schedule with randomization\nconst schedules = generateRandomSchedule(\n  commandAnalysis.contentCount === 'auto' ? 5 : commandAnalysis.contentCount,\n  true // Avoid same day posting\n);\n\n// Determine if this is a trending topic fill request\nconst isTrendingFill = commandAnalysis.command === 'FILL' || \n                      messageText.toLowerCase().includes('fill') || \n                      messageText.toLowerCase().includes('trending');\n\n// Auto-approval logic for short posts\nconst shouldAutoApprove = contentAnalysis.qualityScore >= AGENT_CONFIG.autoApprovalThreshold &&\n                         commandAnalysis.focus !== 'current' && // Be careful with trending topics\n                         !isTrendingFill;\n\nreturn {\n  // Core identifiers\n  agentId,\n  messageId: agentId,\n  telegramMessageId: messageId,\n  userId,\n  chatId,\n  timestamp,\n  \n  // Content analysis\n  originalContent: messageText,\n  contentAnalysis,\n  commandAnalysis,\n  \n  // Processing configuration\n  processingStrategy: 'short_posts_with_comments',\n  targetPlatforms: ['Facebook', 'Twitter'], // Focus platforms\n  contentCount: commandAnalysis.contentCount,\n  contentFocus: commandAnalysis.focus,\n  \n  // Scheduling\n  schedules,\n  randomScheduling: true,\n  \n  // Agent decisions\n  shouldAutoApprove,\n  isTrendingFill,\n  requiresCommentary: true, // Always true for this format\n  \n  // Format requirements\n  outputFormat: {\n    type: 'short_post_with_comment',\n    shortPostMaxLength: 180,\n    commentMaxLength: 500,\n    includeNumbers: true, // For numbered posts like 1., 2., etc.\n    language: 'french',\n    tone: contentAnalysis.categoryConfig?.tone || 'engaging'\n  },\n  \n  // File info\n  hasMedia: !!files,\n  fileInfo: files ? {\n    type: message.document ? 'document' : message.photo ? 'image' : message.video ? 'video' : 'audio',\n    fileId: files.file_id || files[files.length - 1]?.file_id\n  } : null,\n  \n  // Agent config\n  agentConfig: AGENT_CONFIG,\n  \n  // Next action routing\n  nextAction: {\n    node: isTrendingFill ? 'trending_topic_generation' : 'short_post_generation',\n    priority: isTrendingFill ? 'high' : 'medium',\n    autoProcess: shouldAutoApprove\n  }\n};"
+      },
+      "id": "agentic-parser",
+      "name": "🧠 Short Post Intelligence Engine",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [400, 400]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": {
+          "status": "agent_processing",
+          "message": "🤖 Création de posts courts avec commentaires...",
+          "agentId": "={{$json.agentId}}",
+          "format": "short_post_with_comment",
+          "count": "={{$json.contentCount}}",
+          "focus": "={{$json.contentFocus}}"
+        }
+      },
+      "id": "webhook-response",
+      "name": "⚡ Instant Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [600, 500]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.isTrendingFill}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "trending-fill-check",
+      "name": "📈 Check Trending Fill",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 200]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "read",
+        "documentId": "YOUR_GOOGLE_SHEET_ID",
+        "sheetName": "Agentic Content Pipeline",
+        "options": {
+          "range": "A:Z"
+        }
+      },
+      "id": "check-empty-slots",
+      "name": "📊 Check Empty Slots",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [800, 100],
+      "credentials": {
+        "googleSheetsApi": {
+          "id": "google-sheets-api",
+          "name": "Google Sheets API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4-turbo\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Tu es un expert en création de contenu social media français. Tu te spécialises dans la création de posts courts et percutants avec des commentaires détaillés.\\n\\nTon format de réponse EXACT :\\n[\\n  {\\n    \\\"numero\\\": 1,\\n    \\\"post_court\\\": \\\"Message court et percutant (max 180 caractères)\\\",\\n    \\\"commentaire\\\": \\\"Explication détaillée, développement du concept, exemples concrets (max 500 caractères)\\\"\\n  }\\n]\\n\\nExigences :\\n- Posts courts : max 180 caractères, percutants, mémorables\\n- Commentaires : max 500 caractères, approfondissement, exemples\\n- Ton français naturel et engageant\\n- Métaphores et analogies quand pertinent\\n- Variations différentes mais cohérentes avec le thème\\n- Numérotation claire (1, 2, 3, etc.)\\n\\nFocus : \\\" + $json.contentFocus + \"\\nNombre de posts demandés : \" + $json.contentCount + \"\\nTon général : \" + $json.outputFormat.tone\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Crée \" + $json.contentCount + \" posts courts avec commentaires basés sur ce contenu :\\n\\n\\\"\" + $json.originalContent + \"\\\"\\n\\nContexte détecté : \" + $json.contentAnalysis.category + \"\\nQualité du contenu source : \" + $json.contentAnalysis.qualityScore + \"/100\\n\\nCrée des variations engageantes qui explorent différents angles du message principal. Chaque post doit être autonome mais cohérent avec le thème général.\"\n    }\n  ],\n  \"temperature\": 0.8,\n  \"max_tokens\": 2000,\n  \"presence_penalty\": 0.3,\n  \"frequency_penalty\": 0.2\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 90000
+        }
+      },
+      "id": "ai-short-post-generator",
+      "name": "✍️ AI Short Post Generator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [800, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-api-key",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"gpt-4-turbo\",\n  \"messages\": [\n    {\n      \"role\": \"system\",\n      \"content\": \"Tu es un expert en tendances et sujets d'actualité pour les réseaux sociaux. Tu crées des posts courts engageants sur des sujets tendance.\\n\\nFormat de réponse EXACT :\\n[\\n  {\\n    \\\"numero\\\": 1,\\n    \\\"sujet_tendance\\\": \\\"Nom du sujet/tendance\\\",\\n    \\\"post_court\\\": \\\"Message court et accrocheur\\\",\\n    \\\"commentaire\\\": \\\"Développement et contextualisation\\\"\\n  }\\n]\\n\\nCrée des posts sur des sujets actuels, pertinents et engageants. Évite la controverse mais reste informatif et intéressant.\"\n    },\n    {\n      \"role\": \"user\",\n      \"content\": \"Analyse les créneaux vides détectés et crée 3-5 posts sur des sujets tendance pour remplir le planning. Focus sur des thèmes universels et engageants comme : développement personnel, productivité, relations, business, innovation, bien-être.\\n\\nCrée des posts courts avec commentaires qui peuvent intéresser un large public français.\"\n    }\n  ],\n  \"temperature\": 0.7,\n  \"max_tokens\": 1500\n}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 60000
+        }
+      },
+      "id": "trending-topic-generator",
+      "name": "📈 Trending Topic Generator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1000, 100],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-api-key",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🔄 Process Short Posts with Comments\nconst agentData = $('Short Post Intelligence Engine').first().json;\nconst aiResponse = $input.first().json;\n\n// Parse AI response\nlet generatedPosts = [];\ntry {\n  const aiContent = aiResponse.choices[0].message.content;\n  generatedPosts = JSON.parse(aiContent);\n} catch (error) {\n  console.log('Parsing fallback for short posts');\n  // Fallback parsing\n  generatedPosts = [{\n    numero: 1,\n    post_court: agentData.originalContent.substring(0, 180),\n    commentaire: 'Commentaire généré automatiquement basé sur le contenu source.'\n  }];\n}\n\n// Ensure we have the right number of posts\nwhile (generatedPosts.length < agentData.contentCount && generatedPosts.length > 0) {\n  const basePage = generatedPosts[generatedPosts.length % generatedPosts.length];\n  generatedPosts.push({\n    numero: generatedPosts.length + 1,\n    post_court: basePage.post_court + ' (variation)',\n    commentaire: basePage.commentaire + ' Perspective alternative.'\n  });\n}\n\n// Quality scoring for short posts\nfunction calculateShortPostQuality(post, comment, agentContext) {\n  let score = 50;\n  \n  // Post length optimization (short but meaningful)\n  if (post.length > 30 && post.length <= 180) score += 15;\n  else if (post.length > 15) score += 8;\n  \n  // Comment depth and value\n  if (comment.length > 150) score += 10;\n  if (comment.length > 300) score += 5;\n  \n  // Engagement elements\n  if (post.includes('?')) score += 8;\n  if (comment.includes('exemple') || comment.includes('par exemple')) score += 5;\n  if (post.match(/[.!…]/)) score += 5;\n  \n  // French language quality indicators\n  if (comment.includes(':') && comment.split(':').length > 1) score += 5; // Good structure\n  if (post.match(/\\b(tu|vous|ton|votre)\\b/)) score += 8; // Direct address\n  \n  // Content quality\n  if (comment.includes('recherche') || comment.includes('étude')) score += 5;\n  if (post.length < comment.length) score += 10; // Good ratio\n  \n  return Math.min(100, Math.max(30, score));\n}\n\n// Process each generated post\nconst processedPosts = generatedPosts.slice(0, agentData.contentCount).map((post, index) => {\n  const contentId = `${agentData.agentId}_short_${post.numero || (index + 1)}`;\n  const scheduleDate = agentData.schedules[index] || new Date(Date.now() + (index + 1) * 24 * 60 * 60 * 1000).toISOString();\n  \n  const qualityScore = calculateShortPostQuality(\n    post.post_court || '',\n    post.commentaire || '',\n    agentData\n  );\n  \n  // Auto-approval based on quality and agent settings\n  const shouldAutoPost = qualityScore >= agentData.agentConfig.autoApprovalThreshold &&\n                        agentData.shouldAutoApprove &&\n                        !agentData.isTrendingFill;\n  \n  return {\n    // Core identifiers\n    contentId,\n    agentId: agentData.agentId,\n    parentMessageId: agentData.messageId,\n    postNumber: post.numero || (index + 1),\n    totalPosts: agentData.contentCount,\n    \n    // Content format\n    format: 'short_post_with_comment',\n    postCourt: (post.post_court || '').substring(0, 180),\n    commentaire: (post.commentaire || '').substring(0, 500),\n    fullContent: `${post.post_court || ''}\\n\\nCommentaire :\\n${post.commentaire || ''}`,\n    \n    // Trending topic info (if applicable)\n    sujetTendance: post.sujet_tendance || null,\n    \n    // Platform targeting\n    targetPlatforms: agentData.targetPlatforms,\n    primaryPlatform: 'Facebook',\n    \n    // Scheduling with randomization\n    scheduledDate: scheduleDate,\n    isRandomScheduled: true,\n    postingStrategy: 'random_distributed',\n    \n    // Quality and approval\n    qualityScore,\n    shouldAutoPost,\n    posted: false,\n    postingStatus: shouldAutoPost ? 'Auto-Approved' : 'Pending Review',\n    \n    // Content metadata\n    sourceCategory: agentData.contentAnalysis.category,\n    contentFocus: agentData.contentFocus,\n    detectedLanguage: 'french',\n    \n    // Character counts\n    postLength: (post.post_court || '').length,\n    commentLength: (post.commentaire || '').length,\n    \n    // Agent context\n    originalSource: agentData.originalContent,\n    isTrendingContent: agentData.isTrendingFill,\n    \n    // Timestamps\n    createdAt: new Date().toISOString(),\n    \n    // Platform-specific versions\n    platformVersions: {\n      Facebook: {\n        post: (post.post_court || '').substring(0, 150),\n        comment: (post.commentaire || '').substring(0, 500)\n      },\n      Twitter: {\n        post: (post.post_court || '').substring(0, 200),\n        comment: (post.commentaire || '').substring(0, 400)\n      }\n    }\n  };\n});\n\n// Performance metrics\nconst performanceMetrics = {\n  totalGenerated: processedPosts.length,\n  averageQualityScore: Math.round(processedPosts.reduce((sum, p) => sum + p.qualityScore, 0) / processedPosts.length),\n  autoApprovedCount: processedPosts.filter(p => p.shouldAutoPost).length,\n  averagePostLength: Math.round(processedPosts.reduce((sum, p) => sum + p.postLength, 0) / processedPosts.length),\n  averageCommentLength: Math.round(processedPosts.reduce((sum, p) => sum + p.commentLength, 0) / processedPosts.length),\n  scheduleSpanDays: Math.ceil((new Date(agentData.schedules[agentData.schedules.length - 1]) - new Date(agentData.schedules[0])) / (1000 * 60 * 60 * 24)),\n  randomSchedulingUsed: true,\n  contentFormat: 'short_post_with_comment'\n};\n\nreturn {\n  agentData,\n  processedPosts,\n  performanceMetrics,\n  processingSuccess: true,\n  formatUsed: 'short_post_with_comment',\n  nextAction: processedPosts.filter(p => p.shouldAutoPost).length > 0 ? 'auto_posting' : 'human_review'\n};"
+      },
+      "id": "short-post-processor",
+      "name": "📝 Short Post Processor",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Split posts for individual processing\nconst processingData = $input.first().json;\nreturn processingData.processedPosts.map(post => ({\n  ...post,\n  batchMetrics: processingData.performanceMetrics,\n  agentContext: processingData.agentData\n}));"
+      },
+      "id": "post-splitter",
+      "name": "🔄 Post Distribution",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1200, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_GOOGLE_SHEET_ID",
+        "sheetName": "Short Posts Pipeline",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Content ID": "={{$json.contentId}}",
+            "Agent ID": "={{$json.agentId}}",
+            "Post Number": "={{$json.postNumber}}",
+            "Total Posts": "={{$json.totalPosts}}",
+            "Format": "={{$json.format}}",
+            "Post Court": "={{$json.postCourt}}",
+            "Commentaire": "={{$json.commentaire}}",
+            "Sujet Tendance": "={{$json.sujetTendance || ''}}",
+            "Target Platforms": "={{$json.targetPlatforms.join(', ')}}",
+            "Scheduled Date": "={{$json.scheduledDate}}",
+            "Random Scheduled": "={{$json.isRandomScheduled}}",
+            "Quality Score": "={{$json.qualityScore}}",
+            "Should Auto Post": "={{$json.shouldAutoPost}}",
+            "Posting Status": "={{$json.postingStatus}}",
+            "Posted": "={{$json.posted}}",
+            "Source Category": "={{$json.sourceCategory}}",
+            "Content Focus": "={{$json.contentFocus}}",
+            "Post Length": "={{$json.postLength}}",
+            "Comment Length": "={{$json.commentLength}}",
+            "Original Source": "={{$json.originalSource}}",
+            "Is Trending": "={{$json.isTrendingContent}}",
+            "Created At": "={{$json.createdAt}}",
+            "Full Content": "={{$json.fullContent}}"
+          }
+        },
+        "options": {}
+      },
+      "id": "save-short-posts",
+      "name": "💾 Save Short Posts",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1400, 300],
+      "credentials": {
+        "googleSheetsApi": {
+          "id": "google-sheets-api",
+          "name": "Google Sheets API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.shouldAutoPost}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "auto-post-gate",
+      "name": "✅ Auto-Post Gate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [1400, 200]
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🚀 Random Auto-Posting Logic\nconst postData = $input.first().json;\nconst now = new Date();\nconst scheduledTime = new Date(postData.scheduledDate);\n\n// Check if it's time to post (within 1 hour of scheduled time or immediate)\nconst timeDiff = Math.abs(scheduledTime - now) / (1000 * 60); // minutes\nconst shouldPostNow = timeDiff <= 60 || postData.postingStrategy === 'immediate';\n\nif (!shouldPostNow) {\n  return {\n    ...postData,\n    postingDecision: 'scheduled_for_later',\n    nextCheckTime: scheduledTime.toISOString(),\n    message: `Post programmé pour ${scheduledTime.toLocaleString('fr-FR')}`\n  };\n}\n\n// Generate platform-specific content\nconst platformPosts = postData.targetPlatforms.map(platform => {\n  const platformVersion = postData.platformVersions[platform] || {\n    post: postData.postCourt,\n    comment: postData.commentaire\n  };\n  \n  // Format for the platform\n  let finalContent = `${postData.postNumber}.\\n${platformVersion.post}\\n\\nCommentaire :\\n${platformVersion.comment}`;\n  \n  // Platform-specific adjustments\n  if (platform === 'Twitter') {\n    // Split into thread if too long\n    if (finalContent.length > 280) {\n      const tweet1 = `${postData.postNumber}. ${platformVersion.post}`;\n      const tweet2 = `Commentaire : ${platformVersion.comment}`;\n      finalContent = { thread: [tweet1, tweet2] };\n    }\n  }\n  \n  return {\n    platform,\n    content: finalContent,\n    postNumber: postData.postNumber,\n    readyToPost: true,\n    isRandomPost: true\n  };\n});\n\nreturn {\n  ...postData,\n  postingDecision: 'posting_now',\n  platformPosts,\n  postingTimestamp: now.toISOString(),\n  autoPosted: true,\n  postingStatus: 'Auto-Posted Successfully',\n  randomPostExecuted: true\n};"
+      },
+      "id": "random-posting-engine",
+      "name": "🎲 Random Posting Engine",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1600, 200]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.telegram.org/bot{{YOUR_TELEGRAM_BOT_TOKEN}}/sendMessage",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": {
+          "chat_id": "={{$('Short Post Intelligence Engine').first().json.chatId}}",
+          "text": "✍️ *Posts Courts Générés avec Succès!*\n\n📊 *Résultats:*\n• Posts créés: {{$('Short Post Processor').first().json.performanceMetrics.totalGenerated}}\n• Score qualité moyen: {{$('Short Post Processor').first().json.performanceMetrics.averageQualityScore}}/100\n• Auto-approuvés: {{$('Short Post Processor').first().json.performanceMetrics.autoApprovedCount}}\n• Longueur post moyenne: {{$('Short Post Processor').first().json.performanceMetrics.averagePostLength}} caractères\n• Longueur commentaire moyenne: {{$('Short Post Processor').first().json.performanceMetrics.averageCommentLength}} caractères\n\n🎲 *Programmation Aléatoire:*\n• Durée: {{$('Short Post Processor').first().json.performanceMetrics.scheduleSpanDays}} jours\n• Format: Post court + Commentaire\n• Plateformes: Facebook, Twitter\n\n📱 Tes posts sont maintenant programmés de manière aléatoire pour un engagement optimal!",
+          "parse_mode": "Markdown"
+        },
+        "options": {}
+      },
+      "id": "success-notification",
+      "name": "📱 Success Notification",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1400, 400]
+    },
+    {
+      "parameters": {
+        "cronExpression": "0 9 * * *",
+        "triggerAtStartup": false
+      },
+      "id": "daily-check-trigger",
+      "name": "⏰ Daily Content Check",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [200, 100]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "read",
+        "documentId": "YOUR_GOOGLE_SHEET_ID",
+        "sheetName": "Short Posts Pipeline",
+        "options": {
+          "range": "A:Z"
+        }
+      },
+      "id": "daily-schedule-check",
+      "name": "📅 Check Daily Schedule",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [400, 100],
+      "credentials": {
+        "googleSheetsApi": {
+          "id": "google-sheets-api",
+          "name": "Google Sheets API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🔍 Analyze schedule for gaps and auto-posting\nconst sheetData = $input.first().json;\nconst today = new Date();\nconst todayStr = today.toISOString().split('T')[0];\n\n// Parse sheet data\nconst headers = sheetData[0] || [];\nconst rows = sheetData.slice(1);\n\n// Find scheduled date column\nconst scheduledDateIndex = headers.findIndex(h => h.includes('Scheduled Date'));\nconst postedIndex = headers.findIndex(h => h.includes('Posted'));\nconst statusIndex = headers.findIndex(h => h.includes('Posting Status'));\n\nif (scheduledDateIndex === -1) {\n  return { action: 'no_schedule_column', message: 'Schedule column not found' };\n}\n\n// Check for today's posts\nconst todaysPosts = rows.filter(row => {\n  const scheduleDate = row[scheduledDateIndex];\n  if (!scheduleDate) return false;\n  \n  const postDate = new Date(scheduleDate).toISOString().split('T')[0];\n  return postDate === todayStr;\n});\n\n// Check for posts ready to auto-post\nconst readyToPosts = todaysPosts.filter(row => {\n  const posted = row[postedIndex];\n  const status = row[statusIndex];\n  return posted !== 'true' && (status === 'Auto-Approved' || status === 'Auto-Posted Successfully');\n});\n\n// Check for empty slots in next 7 days\nconst nextWeek = new Date(today);\nnextWeek.setDate(today.getDate() + 7);\n\nconst upcomingDays = [];\nfor (let i = 0; i < 7; i++) {\n  const checkDate = new Date(today);\n  checkDate.setDate(today.getDate() + i);\n  const checkDateStr = checkDate.toISOString().split('T')[0];\n  \n  const dayPosts = rows.filter(row => {\n    const scheduleDate = row[scheduledDateIndex];\n    if (!scheduleDate) return false;\n    const postDate = new Date(scheduleDate).toISOString().split('T')[0];\n    return postDate === checkDateStr;\n  });\n  \n  upcomingDays.push({\n    date: checkDateStr,\n    postsCount: dayPosts.length,\n    isEmpty: dayPosts.length === 0\n  });\n}\n\nconst emptyDays = upcomingDays.filter(day => day.isEmpty);\n\nreturn {\n  action: 'schedule_analysis',\n  today: todayStr,\n  todaysPostsCount: todaysPosts.length,\n  readyToPostCount: readyToPosts.length,\n  emptyDaysCount: emptyDays.length,\n  emptyDays: emptyDays.map(d => d.date),\n  upcomingSchedule: upcomingDays,\n  needsTrendingFill: emptyDays.length > 2,\n  hasAutoPostsToday: readyToPosts.length > 0,\n  \n  // Auto-actions needed\n  recommendedActions: {\n    autoPostToday: readyToPosts.length > 0,\n    fillEmptySlots: emptyDays.length > 2,\n    generateTrendingContent: emptyDays.length > 3\n  }\n};"
+      },
+      "id": "schedule-analyzer",
+      "name": "🔍 Schedule Gap Analyzer",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [600, 100]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json.needsTrendingFill}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "auto-fill-check",
+      "name": "🔄 Auto-Fill Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [800, 50]
+    }
+  ],
+  "connections": {
+    "🤖 Telegram Agent Trigger": {
+      "main": [
+        [
+          {
+            "node": "🧠 Short Post Intelligence Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧠 Short Post Intelligence Engine": {
+      "main": [
+        [
+          {
+            "node": "⚡ Instant Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📈 Check Trending Fill",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "✍️ AI Short Post Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📈 Check Trending Fill": {
+      "main": [
+        [
+          {
+            "node": "📊 Check Empty Slots",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Check Empty Slots": {
+      "main": [
+        [
+          {
+            "node": "📈 Trending Topic Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "✍️ AI Short Post Generator": {
+      "main": [
+        [
+          {
+            "node": "📝 Short Post Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📈 Trending Topic Generator": {
+      "main": [
+        [
+          {
+            "node": "📝 Short Post Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Short Post Processor": {
+      "main": [
+        [
+          {
+            "node": "🔄 Post Distribution",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📱 Success Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Post Distribution": {
+      "main": [
+        [
+          {
+            "node": "💾 Save Short Posts",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "✅ Auto-Post Gate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "✅ Auto-Post Gate": {
+      "main": [
+        [
+          {
+            "node": "🎲 Random Posting Engine",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "⏰ Daily Content Check": {
+      "main": [
+        [
+          {
+            "node": "📅 Check Daily Schedule",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📅 Check Daily Schedule": {
+      "main": [
+        [
+          {
+            "node": "🔍 Schedule Gap Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Schedule Gap Analyzer": {
+      "main": [
+        [
+          {
+            "node": "🔄 Auto-Fill Check",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Auto-Fill Check": {
+      "main": [
+        [
+          {
+            "node": "📈 Trending Topic Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2025-01-15T00:00:00.000Z",
+      "updatedAt": "2025-01-15T00:00:00.000Z",
+      "id": "short-posts-agentic",
+      "name": "Short Posts Agentic"
+    }
+  ],
+  "triggerCount": 2,
+  "updatedAt": "2025-01-15T00:00:00.000Z",
+  "versionId": "short-posts-v1.0"
+}

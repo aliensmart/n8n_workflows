@@ -1,0 +1,610 @@
+{
+  "name": "Complete Agentic Social Media Agent - Full Command System",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "id": "telegram-message-trigger",
+      "name": "📱 Telegram Message Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [200, 400],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-api",
+          "name": "Telegram Bot API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🧠 Enhanced Command Parser with Full Command System\nconst telegramData = $input.first().json;\nconst message = telegramData.message || {};\nconst messageText = message.text || '';\nconst userId = message.from?.id;\nconst chatId = message.chat?.id;\nconst messageId = message.message_id;\nconst files = message.document || message.photo || message.video || message.audio;\nconst timestamp = new Date().toISOString();\n\n// 🎯 Complete Command System from Documentation\nconst COMMANDS = {\n  // Main Action Commands\n  'BC': {\n    action: 'background_content',\n    description: 'Create a simple post with a colored background',\n    transformer: 'text_transformer',\n    postType: 'Background Colored Text Post',\n    priority: 1\n  },\n  'BCW': {\n    action: 'background_content_with_words',\n    description: 'Create background content with additional comments',\n    transformer: 'text_transformer',\n    postType: 'Background Colored Text Post',\n    priority: 2\n  },\n  'SC': {\n    action: 'summary_content',\n    description: 'Summarize the content provided',\n    transformer: 'text_transformer',\n    postType: 'Short Post',\n    priority: 3\n  },\n  'BG': {\n    action: 'background_generation',\n    description: 'Create context or background information',\n    transformer: 'text_transformer', \n    postType: 'Full Post',\n    priority: 2\n  },\n  'CGO': {\n    action: 'check_grammar_only',\n    description: 'Verify grammar without altering meaning',\n    transformer: 'text_transformer',\n    postType: 'preserve_original',\n    priority: 1\n  },\n  'MIB': {\n    action: 'make_it_better',\n    description: 'Improve structure, grammar, and readability',\n    transformer: 'text_transformer',\n    postType: 'Full Post',\n    priority: 2\n  },\n  'PAI': {\n    action: 'post_as_is',\n    description: 'Post content exactly as provided',\n    transformer: 'none',\n    postType: 'preserve_original',\n    priority: 1\n  },\n  'TL': {\n    action: 'translate',\n    description: 'Translate content into specified languages',\n    transformer: 'text_transformer',\n    postType: 'preserve_original',\n    priority: 1\n  },\n  'KPC': {\n    action: 'key_points_creation',\n    description: 'Extract key points to create concise summaries',\n    transformer: 'text_transformer',\n    postType: 'Short Post',\n    priority: 3\n  },\n  \n  // Media-Specific Commands\n  'IM': {\n    action: 'include_media',\n    description: 'Post content with attached media',\n    transformer: 'media_processor',\n    postType: 'Full Post',\n    priority: 2\n  },\n  'KPS': {\n    action: 'key_points_with_segments',\n    description: 'Generate key points and video clips',\n    transformer: 'video_transformer',\n    postType: 'Short Post',\n    priority: 4\n  },\n  'KPCV': {\n    action: 'key_points_creation_video',\n    description: 'Extract key points from video',\n    transformer: 'video_transformer',\n    postType: 'Short Post',\n    priority: 3\n  },\n  'CVS': {\n    action: 'create_video_segments',\n    description: 'Divide video into segments',\n    transformer: 'video_transformer',\n    postType: 'Full Post',\n    priority: 4\n  },\n  'IP': {\n    action: 'image_processing',\n    description: 'Analyze and summarize image context',\n    transformer: 'image_transformer',\n    postType: 'Short Post',\n    priority: 2\n  }\n};\n\n// 🌍 Platform Configuration\nconst PLATFORMS = {\n  'LinkedIn': { \n    maxLength: 1300, tone: 'Professional', hashtagLimit: 5, \n    postTypes: ['Full Post', 'Short Post', 'Background Colored Text Post']\n  },\n  'Twitter': { \n    maxLength: 280, tone: 'Informal', hashtagLimit: 2,\n    postTypes: ['Short Post', 'Background Colored Text Post']\n  },\n  'Facebook': { \n    maxLength: 2000, tone: 'Informal', hashtagLimit: 10,\n    postTypes: ['Full Post', 'Short Post', 'Background Colored Text Post']\n  },\n  'Telegram': { \n    maxLength: 4096, tone: 'Informal', hashtagLimit: 5,\n    postTypes: ['Full Post', 'Short Post']\n  },\n  'Instagram': { \n    maxLength: 2200, tone: 'Informal', hashtagLimit: 30,\n    postTypes: ['Full Post', 'Background Colored Text Post']\n  },\n  'TikTok': { \n    maxLength: 150, tone: 'Informal', hashtagLimit: 5,\n    postTypes: ['Short Post', 'Background Colored Text Post']\n  }\n};\n\n// 🎨 Tone Options\nconst TONE_OPTIONS = {\n  'Amateur': 'Use simple, beginner-friendly language',\n  'Professional': 'Use formal tone for workplace contexts',\n  'Informal': 'Use casual conversational language'\n};\n\n// 🔍 Advanced Command Detection\nfunction parseCommand(text) {\n  const upperText = text.toUpperCase();\n  let detectedCommand = null;\n  let parameters = {};\n  \n  // Check for explicit commands\n  for (const [cmd, config] of Object.entries(COMMANDS)) {\n    if (upperText.startsWith(cmd + ' ') || upperText === cmd) {\n      detectedCommand = cmd;\n      break;\n    }\n  }\n  \n  // Parse parameters\n  const platformMatch = text.match(/Platform[:\\s]+(.*?)(?=\\s+[A-Z]+:|$)/i);\n  if (platformMatch) {\n    parameters.platforms = platformMatch[1].split(',').map(p => p.trim());\n  }\n  \n  const languageMatch = text.match(/Language[:\\s]+(.*?)(?=\\s+[A-Z]+:|$)/i);\n  if (languageMatch) {\n    parameters.languages = languageMatch[1].split(',').map(l => l.trim());\n  }\n  \n  const toneMatch = text.match(/Tone[:\\s]+(\\w+)/i);\n  if (toneMatch) {\n    parameters.tone = toneMatch[1];\n  }\n  \n  const pageMatch = text.match(/Page[:\\s]+(.*?)(?=\\s+[A-Z]+:|$)/i);\n  if (pageMatch) {\n    parameters.pages = pageMatch[1].split(',').map(p => p.trim());\n  }\n  \n  // Extract clean content (remove command and parameters)\n  let cleanContent = text;\n  if (detectedCommand) {\n    cleanContent = text.replace(new RegExp(`^${detectedCommand}\\\\s*`, 'i'), '');\n  }\n  cleanContent = cleanContent\n    .replace(/Platform[:\\s]+[^\\n]+/gi, '')\n    .replace(/Language[:\\s]+[^\\n]+/gi, '')\n    .replace(/Tone[:\\s]+\\w+/gi, '')\n    .replace(/Page[:\\s]+[^\\n]+/gi, '')\n    .trim();\n  \n  return {\n    command: detectedCommand,\n    parameters,\n    cleanContent,\n    hasExplicitCommand: !!detectedCommand\n  };\n}\n\n// 🤖 Content Type Detection\nfunction detectContentType(message, files) {\n  if (files) {\n    if (message.document) {\n      const mimeType = message.document.mime_type || '';\n      if (mimeType.includes('pdf')) return 'pdf';\n      if (mimeType.includes('word')) return 'document';\n      return 'document';\n    }\n    if (message.photo) return 'image';\n    if (message.video || message.video_note) return 'video';\n    if (message.audio || message.voice) return 'audio';\n  }\n  \n  const text = message.text || '';\n  if (text.match(/https?:\\/\\/.+\\.(jpg|jpeg|png|gif|webp)/i)) return 'image_url';\n  if (text.match(/https?:\\/\\/.+\\.(mp4|avi|mov|webm)/i)) return 'video_url';\n  if (text.match(/https?:\\/\\/(www\\.)?(youtube|youtu\\.be|vimeo)/i)) return 'video_url';\n  if (text.match(/https?:\\/\\//)) return 'url';\n  \n  return 'text';\n}\n\n// 🧠 Transformer Selection Logic\nfunction selectTransformer(command, contentType, hasFiles) {\n  if (command && COMMANDS[command]) {\n    return COMMANDS[command].transformer;\n  }\n  \n  // Auto-select based on content type\n  if (contentType === 'video' || contentType === 'video_url') return 'video_transformer';\n  if (contentType === 'image' || contentType === 'image_url') return 'image_transformer';\n  if (contentType === 'pdf' || contentType === 'document') return 'document_transformer';\n  if (hasFiles) return 'media_processor';\n  \n  return 'text_transformer';\n}\n\n// 📊 Quality Scoring\nfunction calculateQualityScore(content, command, contentType) {\n  let score = 50;\n  \n  // Content length\n  if (content.length > 50 && content.length < 1000) score += 20;\n  else if (content.length > 20) score += 10;\n  \n  // Command complexity\n  if (command && COMMANDS[command]) {\n    score += COMMANDS[command].priority * 5;\n  }\n  \n  // Content type bonus\n  if (contentType !== 'text') score += 10;\n  \n  // Quality indicators\n  if (content.match(/[.!?]/g)?.length > 2) score += 10;\n  if (content.includes('#')) score += 5;\n  if (content.match(/https?:\\/\\//)) score += 10;\n  \n  return Math.min(100, Math.max(0, score));\n}\n\n// Generate unique message ID\nconst generateMessageId = () => {\n  return `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n};\n\n// Main processing\nconst uniqueMessageId = generateMessageId();\nconst commandParsing = parseCommand(messageText);\nconst contentType = detectContentType(message, files);\nconst selectedTransformer = selectTransformer(commandParsing.command, contentType, !!files);\nconst qualityScore = calculateQualityScore(commandParsing.cleanContent, commandParsing.command, contentType);\n\n// Default platforms and languages\nconst defaultPlatforms = commandParsing.parameters.platforms || \n  (commandParsing.command === 'TL' ? ['LinkedIn', 'Facebook'] : ['Facebook', 'Twitter']);\nconst defaultLanguages = commandParsing.parameters.languages || ['French'];\nconst defaultTone = commandParsing.parameters.tone || 'Amateur';\n\n// File information\nlet fileInfo = null;\nif (files) {\n  if (message.document) {\n    fileInfo = {\n      fileId: message.document.file_id,\n      fileName: message.document.file_name,\n      fileSize: message.document.file_size,\n      mimeType: message.document.mime_type,\n      type: 'document'\n    };\n  } else if (message.photo) {\n    const photo = message.photo[message.photo.length - 1];\n    fileInfo = {\n      fileId: photo.file_id,\n      fileName: `photo_${Date.now()}.jpg`,\n      fileSize: photo.file_size,\n      type: 'image'\n    };\n  } else if (message.video) {\n    fileInfo = {\n      fileId: message.video.file_id,\n      fileName: `video_${Date.now()}.mp4`,\n      fileSize: message.video.file_size,\n      duration: message.video.duration,\n      type: 'video'\n    };\n  }\n}\n\nreturn {\n  // Core message data\n  messageId: uniqueMessageId,\n  telegramMessageId: messageId,\n  userId,\n  chatId,\n  timestamp,\n  \n  // Content analysis\n  originalContent: messageText,\n  cleanContent: commandParsing.cleanContent,\n  contentType,\n  hasFiles: !!files,\n  fileInfo,\n  \n  // Command system\n  command: commandParsing.command,\n  hasExplicitCommand: commandParsing.hasExplicitCommand,\n  commandConfig: commandParsing.command ? COMMANDS[commandParsing.command] : null,\n  parameters: commandParsing.parameters,\n  \n  // Processing configuration\n  selectedTransformer,\n  targetPlatforms: defaultPlatforms,\n  languages: defaultLanguages,\n  tone: defaultTone,\n  \n  // Quality and routing\n  qualityScore,\n  postType: commandParsing.command ? COMMANDS[commandParsing.command]?.postType : 'Full Post',\n  \n  // Agent decisions\n  requiresTranslation: defaultLanguages.length > 1 || !defaultLanguages.includes('French'),\n  requiresMediaProcessing: !!files,\n  requiresUrlFetch: contentType === 'url' || contentType.includes('_url'),\n  \n  // Next action routing\n  nextAction: {\n    transformer: selectedTransformer,\n    action: commandParsing.command ? COMMANDS[commandParsing.command]?.action : 'process_content',\n    priority: commandParsing.command ? COMMANDS[commandParsing.command]?.priority : 2\n  }\n};"
+      },
+      "id": "command-parser",
+      "name": "🎯 Command Parser & Agent Brain",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [400, 400]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_GOOGLE_SHEET_ID",
+        "sheetName": "Raw Retrieved Content",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Message ID": "={{$json.messageId}}",
+            "Source Type": "Telegram",
+            "Source": "={{$json.chatId}}",
+            "Original Content": "={{$json.originalContent}}",
+            "Content Type": "={{$json.contentType}}",
+            "Post Type Suggestion": "={{$json.postType}}",
+            "Media Link": "={{$json.fileInfo ? $json.fileInfo.fileId : ''}}",
+            "Page To Post": "={{$json.targetPlatforms.join(', ')}}",
+            "Include Media": "={{$json.hasFiles}}",
+            "Topic or Keywords": "={{$json.command || 'auto-extracted'}}",
+            "Content Quality Score": "={{$json.qualityScore}}",
+            "Language": "={{$json.languages[0]}}",
+            "Translate Post": "={{$json.requiresTranslation}}",
+            "Post Languages": "={{$json.languages.join(', ')}}",
+            "Include Video Segment": "={{$json.contentType === 'video'}}",
+            "Created On": "={{$json.timestamp}}"
+          }
+        },
+        "options": {}
+      },
+      "id": "save-raw-content",
+      "name": "📊 Save Raw Content",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [600, 500],
+      "credentials": {
+        "googleSheetsApi": {
+          "id": "google-sheets-api",
+          "name": "Google Sheets API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.selectedTransformer}}",
+              "operation": "equal",
+              "value2": "text_transformer"
+            }
+          ]
+        }
+      },
+      "id": "text-transformer-check",
+      "name": "📝 Text Transformer Route",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 200]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.selectedTransformer}}",
+              "operation": "equal",
+              "value2": "video_transformer"
+            }
+          ]
+        }
+      },
+      "id": "video-transformer-check",
+      "name": "🎥 Video Transformer Route",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.selectedTransformer}}",
+              "operation": "equal",
+              "value2": "image_transformer"
+            }
+          ]
+        }
+      },
+      "id": "image-transformer-check",
+      "name": "🖼️ Image Transformer Route",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [600, 400]
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": {
+          "model": "gpt-4-turbo",
+          "messages": [
+            {
+              "role": "system",
+              "content": "={{\"Tu es un expert en transformation de contenu pour les réseaux sociaux. Tu appliques la commande spécifique demandée.\\n\\nCommande actuelle : \" + ($json.command || 'AUTO') + \"\\nAction : \" + ($json.commandConfig?.description || 'Traitement automatique du contenu') + \"\\nType de post : \" + $json.postType + \"\\nPlateforme(s) : \" + $json.targetPlatforms.join(', ') + \"\\nTon : \" + $json.tone + \"\\n\\nInstructions spécifiques par commande :\\n\\n- BC : Crée un post simple pour arrière-plan coloré\\n- BCW : Crée un post avec arrière-plan ET commentaires additionnels\\n- SC : Résume le contenu de manière concise\\n- BG : Crée du contexte et des informations de fond\\n- CGO : Corrige uniquement la grammaire sans changer le sens\\n- MIB : Améliore la structure, grammaire et lisibilité\\n- PAI : Garde le contenu tel quel\\n- TL : Traduit dans les langues spécifiées\\n- KPC : Extrait les points clés en résumés concis\\n\\nFormat de réponse JSON :\\n{\\n  \\\"processedContent\\\": \\\"Contenu principal traité\\\",\\n  \\\"additionalComments\\\": \\\"Commentaires supplémentaires si BCW\\\",\\n  \\\"keyPoints\\\": [\\\"point1\\\", \\\"point2\\\"],\\n  \\\"platformVersions\\\": {\\n    \\\"Facebook\\\": \\\"Version Facebook\\\",\\n    \\\"Twitter\\\": \\\"Version Twitter\\\",\\n    \\\"LinkedIn\\\": \\\"Version LinkedIn\\\"\\n  },\\n  \\\"hashtags\\\": [\\\"#tag1\\\", \\\"#tag2\\\"],\\n  \\\"qualityScore\\\": 85,\\n  \\\"translatedVersions\\\": {\\n    \\\"French\\\": \\\"Version française\\\",\\n    \\\"English\\\": \\\"English version\\\"\\n  }\\n}\"}}"
+            },
+            {
+              "role": "user",
+              "content": "={{\"Commande : \" + ($json.command || 'AUTO') + \"\\n\\nContenu à traiter :\\n\\\"\" + $json.cleanContent + \"\\\"\\n\\nParamètres :\\n- Plateformes cibles : \" + $json.targetPlatforms.join(', ') + \"\\n- Langues : \" + $json.languages.join(', ') + \"\\n- Ton : \" + $json.tone + \"\\n- Type de post : \" + $json.postType + \"\\n- Score qualité initial : \" + $json.qualityScore + \"/100\\n\\nApplique la transformation demandée selon la commande spécifiée. Si la commande est KPC, extrais plusieurs points clés concis. Si c'est BCW, ajoute des commentaires. Si c'est TL, traduis dans toutes les langues spécifiées.\"}}"
+            }
+          ],
+          "temperature": 0.7,
+          "max_tokens": 2000
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 90000
+        }
+      },
+      "id": "text-transformer",
+      "name": "📝 Text Transformer (AI)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [800, 200],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-api-key",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": {
+          "model": "gpt-4-turbo",
+          "messages": [
+            {
+              "role": "system",
+              "content": "={{\"Tu es un expert en analyse et transformation de contenu vidéo. Tu transcris, segmentes et extrais des points clés.\\n\\nCommande : \" + ($json.command || 'AUTO') + \"\\nAction : \" + ($json.commandConfig?.description || 'Traitement vidéo') + \"\\n\\nInstructions spécifiques :\\n- KPCV : Extrais les points clés de la vidéo\\n- KPS : Génère des points clés ET des segments vidéo\\n- CVS : Divise la vidéo en segments basés sur les timestamps\\n\\nFormat de réponse JSON :\\n{\\n  \\\"transcription\\\": \\\"Transcription complète\\\",\\n  \\\"segments\\\": [\\n    {\\n      \\\"startTime\\\": \\\"00:00\\\",\\n      \\\"endTime\\\": \\\"02:30\\\",\\n      \\\"content\\\": \\\"Contenu du segment\\\",\\n      \\\"keyPoints\\\": [\\\"point1\\\", \\\"point2\\\"]\\n    }\\n  ],\\n  \\\"videoSummary\\\": \\\"Résumé général\\\",\\n  \\\"keyPoints\\\": [\\\"point global 1\\\", \\\"point global 2\\\"],\\n  \\\"hashtags\\\": [\\\"#video\\\", \\\"#content\\\"],\\n  \\\"qualityScore\\\": 90\\n}\"}}"
+            },
+            {
+              "role": "user",
+              "content": "={{\"Commande vidéo : \" + ($json.command || 'AUTO') + \"\\n\\nInformations vidéo :\\n- Type : \" + $json.contentType + \"\\n- Fichier : \" + ($json.fileInfo?.fileName || 'N/A') + \"\\n- Durée : \" + ($json.fileInfo?.duration || 'Unknown') + \" secondes\\n\\nContenu contextuel :\\n\\\"\" + $json.cleanContent + \"\\\"\\n\\nTraite cette vidéo selon la commande spécifiée. Si c'est KPS, crée des segments avec timestamps. Si c'est KPCV, focus sur l'extraction de points clés. Si c'est CVS, découpe en segments logiques.\"}}"
+            }
+          ],
+          "temperature": 0.7,
+          "max_tokens": 2500
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 120000
+        }
+      },
+      "id": "video-transformer",
+      "name": "🎥 Video Transformer (AI)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [800, 300],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-api-key",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": {
+          "model": "gpt-4-turbo",
+          "messages": [
+            {
+              "role": "system",
+              "content": "={{\"Tu es un expert en analyse d'images et création de contenu visuel. Tu analyses les images et génères du contenu approprié.\\n\\nCommande : \" + ($json.command || 'IP') + \"\\nAction : \" + ($json.commandConfig?.description || 'Analyse et résumé d\\'image') + \"\\n\\nCapacités :\\n- Extraction de texte (OCR)\\n- Classification et tagging\\n- Génération de légendes\\n- Recommandations de style\\n\\nFormat de réponse JSON :\\n{\\n  \\\"extractedText\\\": \\\"Texte extrait de l'image\\\",\\n  \\\"imageDescription\\\": \\\"Description détaillée\\\",\\n  \\\"suggestedCaption\\\": \\\"Légende suggérée\\\",\\n  \\\"hashtags\\\": [\\\"#tag1\\\", \\\"#tag2\\\"],\\n  \\\"contentIdeas\\\": [\\\"idée1\\\", \\\"idée2\\\"],\\n  \\\"platformRecommendations\\\": {\\n    \\\"Instagram\\\": \\\"Version Instagram\\\",\\n    \\\"Facebook\\\": \\\"Version Facebook\\\"\\n  },\\n  \\\"qualityScore\\\": 85\\n}\"}}"
+            },
+            {
+              "role": "user",
+              "content": "={{\"Commande image : \" + ($json.command || 'IP') + \"\\n\\nInformations image :\\n- Type : \" + $json.contentType + \"\\n- Fichier : \" + ($json.fileInfo?.fileName || 'N/A') + \"\\n\\nContenu contextuel :\\n\\\"\" + $json.cleanContent + \"\\\"\\n\\nAnalyse cette image et génère du contenu approprié selon la commande. Extrais le texte s'il y en a, décris l'image, et crée des légendes engageantes pour les réseaux sociaux.\"}}"
+            }
+          ],
+          "temperature": 0.7,
+          "max_tokens": 1500
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          },
+          "timeout": 90000
+        }
+      },
+      "id": "image-transformer",
+      "name": "🖼️ Image Transformer (AI)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [800, 400],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-api-key",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🔄 Content Processor - Handles all transformer outputs\nconst originalData = $('Command Parser & Agent Brain').first().json;\nconst transformerResult = $input.first().json;\n\n// Determine which transformer was used\nconst transformerUsed = originalData.selectedTransformer;\nlet processedContent = {};\n\n// Process transformer-specific results\nif (transformerUsed === 'text_transformer') {\n  try {\n    const aiResponse = transformerResult.choices[0].message.content;\n    const parsedResult = JSON.parse(aiResponse);\n    \n    processedContent = {\n      type: 'text_content',\n      mainContent: parsedResult.processedContent || originalData.cleanContent,\n      additionalComments: parsedResult.additionalComments || '',\n      keyPoints: parsedResult.keyPoints || [],\n      platformVersions: parsedResult.platformVersions || {},\n      hashtags: parsedResult.hashtags || [],\n      translatedVersions: parsedResult.translatedVersions || {},\n      qualityScore: parsedResult.qualityScore || originalData.qualityScore\n    };\n  } catch (error) {\n    // Fallback processing\n    processedContent = {\n      type: 'text_content',\n      mainContent: originalData.cleanContent,\n      additionalComments: '',\n      keyPoints: [],\n      platformVersions: {},\n      hashtags: [],\n      translatedVersions: {},\n      qualityScore: originalData.qualityScore\n    };\n  }\n} else if (transformerUsed === 'video_transformer') {\n  try {\n    const aiResponse = transformerResult.choices[0].message.content;\n    const parsedResult = JSON.parse(aiResponse);\n    \n    processedContent = {\n      type: 'video_content',\n      transcription: parsedResult.transcription || '',\n      segments: parsedResult.segments || [],\n      videoSummary: parsedResult.videoSummary || '',\n      keyPoints: parsedResult.keyPoints || [],\n      hashtags: parsedResult.hashtags || [],\n      qualityScore: parsedResult.qualityScore || originalData.qualityScore\n    };\n  } catch (error) {\n    processedContent = {\n      type: 'video_content',\n      transcription: '',\n      segments: [],\n      videoSummary: originalData.cleanContent,\n      keyPoints: [],\n      hashtags: [],\n      qualityScore: originalData.qualityScore\n    };\n  }\n} else if (transformerUsed === 'image_transformer') {\n  try {\n    const aiResponse = transformerResult.choices[0].message.content;\n    const parsedResult = JSON.parse(aiResponse);\n    \n    processedContent = {\n      type: 'image_content',\n      extractedText: parsedResult.extractedText || '',\n      imageDescription: parsedResult.imageDescription || '',\n      suggestedCaption: parsedResult.suggestedCaption || '',\n      hashtags: parsedResult.hashtags || [],\n      contentIdeas: parsedResult.contentIdeas || [],\n      platformRecommendations: parsedResult.platformRecommendations || {},\n      qualityScore: parsedResult.qualityScore || originalData.qualityScore\n    };\n  } catch (error) {\n    processedContent = {\n      type: 'image_content',\n      extractedText: '',\n      imageDescription: '',\n      suggestedCaption: originalData.cleanContent,\n      hashtags: [],\n      contentIdeas: [],\n      platformRecommendations: {},\n      qualityScore: originalData.qualityScore\n    };\n  }\n}\n\n// Create platform-specific content\nfunction createPlatformContent(content, platform, originalData) {\n  const platformConfig = {\n    'LinkedIn': { maxLength: 1300, tone: 'Professional' },\n    'Twitter': { maxLength: 280, tone: 'Informal' },\n    'Facebook': { maxLength: 2000, tone: 'Informal' },\n    'Telegram': { maxLength: 4096, tone: 'Informal' },\n    'Instagram': { maxLength: 2200, tone: 'Informal' },\n    'TikTok': { maxLength: 150, tone: 'Informal' }\n  };\n  \n  const config = platformConfig[platform] || platformConfig['Facebook'];\n  let platformContent = '';\n  \n  if (content.type === 'text_content') {\n    platformContent = content.platformVersions[platform] || content.mainContent;\n    if (content.additionalComments && originalData.command === 'BCW') {\n      platformContent += '\\n\\n' + content.additionalComments;\n    }\n  } else if (content.type === 'video_content') {\n    platformContent = content.videoSummary;\n    if (content.keyPoints.length > 0) {\n      platformContent += '\\n\\nPoints clés:\\n' + content.keyPoints.slice(0, 3).join('\\n');\n    }\n  } else if (content.type === 'image_content') {\n    platformContent = content.platformRecommendations[platform] || content.suggestedCaption;\n  }\n  \n  // Ensure character limit\n  if (platformContent.length > config.maxLength) {\n    platformContent = platformContent.substring(0, config.maxLength - 3) + '...';\n  }\n  \n  return platformContent;\n}\n\n// Create final platform-specific posts\nconst finalPosts = originalData.targetPlatforms.map(platform => {\n  const platformContent = createPlatformContent(processedContent, platform, originalData);\n  \n  return {\n    platform,\n    content: platformContent,\n    hashtags: processedContent.hashtags?.slice(0, \n      platform === 'Instagram' ? 30 : \n      platform === 'Facebook' ? 10 : \n      platform === 'LinkedIn' ? 5 : 2\n    ) || [],\n    readyForPosting: true\n  };\n});\n\n// Handle translations if required\nlet translatedContent = {};\nif (originalData.requiresTranslation && processedContent.translatedVersions) {\n  translatedContent = processedContent.translatedVersions;\n} else if (originalData.requiresTranslation) {\n  // Create basic translations\n  originalData.languages.forEach(lang => {\n    translatedContent[lang] = processedContent.mainContent || processedContent.videoSummary || processedContent.suggestedCaption;\n  });\n}\n\nreturn {\n  // Original data\n  ...originalData,\n  \n  // Processed content\n  processedContent,\n  transformerUsed,\n  \n  // Platform-specific posts\n  finalPosts,\n  translatedContent,\n  \n  // Final quality assessment\n  finalQualityScore: processedContent.qualityScore,\n  \n  // Posting readiness\n  readyForPosting: true,\n  processingComplete: true,\n  \n  // Status tracking\n  processingTimestamp: new Date().toISOString(),\n  postingStatus: 'Ready for Posting'\n};"
+      },
+      "id": "content-processor",
+      "name": "🔄 Content Processor",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1000, 300]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_GOOGLE_SHEET_ID",
+        "sheetName": "Processed Content",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Source ID": "={{$json.messageId}}",
+            "Grammar Checked Content": "={{$json.processedContent.mainContent || $json.cleanContent}}",
+            "French Content": "={{$json.translatedContent.French || $json.processedContent.mainContent}}",
+            "English Content": "={{$json.translatedContent.English || ''}}",
+            "Post Type": "={{$json.postType}}",
+            "Media Link": "={{$json.fileInfo ? $json.fileInfo.fileId : ''}}",
+            "Twitter Post": "={{$json.finalPosts.find(p => p.platform === 'Twitter')?.content || ''}}",
+            "Facebook": "={{$json.finalPosts.find(p => p.platform === 'Facebook')?.content || ''}}",
+            "LinkedIn": "={{$json.finalPosts.find(p => p.platform === 'LinkedIn')?.content || ''}}",
+            "Instagram": "={{$json.finalPosts.find(p => p.platform === 'Instagram')?.content || ''}}",
+            "TikTok": "={{$json.finalPosts.find(p => p.platform === 'TikTok')?.content || ''}}",
+            "Final Quality Score": "={{$json.finalQualityScore}}",
+            "Posting Platform": "={{$json.targetPlatforms.join(', ')}}",
+            "Posting Status": "={{$json.postingStatus}}",
+            "Posted": "false",
+            "Posted Date": "={{$json.processingTimestamp}}"
+          }
+        },
+        "options": {}
+      },
+      "id": "save-processed-content",
+      "name": "💾 Save Processed Content",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1200, 300],
+      "credentials": {
+        "googleSheetsApi": {
+          "id": "google-sheets-api",
+          "name": "Google Sheets API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "functionCode": "// 🚀 Buffer Multi-Platform Poster\nconst contentData = $input.first().json;\nconst finalPosts = contentData.finalPosts || [];\n\n// Buffer Profile Configuration\nconst BUFFER_PROFILES = {\n  'LinkedIn': 'YOUR_LINKEDIN_PROFILE_ID',\n  'Twitter': 'YOUR_TWITTER_PROFILE_ID', \n  'Facebook': 'YOUR_FACEBOOK_PROFILE_ID',\n  'Instagram': 'YOUR_INSTAGRAM_PROFILE_ID',\n  'TikTok': 'YOUR_TIKTOK_PROFILE_ID'\n};\n\n// Create Buffer posts for each platform\nconst bufferPosts = finalPosts.map(post => {\n  const profileId = BUFFER_PROFILES[post.platform];\n  \n  if (!profileId || profileId.startsWith('YOUR_')) {\n    return null; // Skip platforms without configured profiles\n  }\n  \n  // Format content with hashtags\n  let finalContent = post.content;\n  if (post.hashtags && post.hashtags.length > 0) {\n    finalContent += '\\n\\n' + post.hashtags.join(' ');\n  }\n  \n  // Random scheduling (1-7 days from now)\n  const now = new Date();\n  const randomDays = Math.floor(Math.random() * 7) + 1;\n  const randomHours = Math.floor(Math.random() * 12) + 8; // 8 AM to 8 PM\n  const scheduledTime = new Date(now);\n  scheduledTime.setDate(now.getDate() + randomDays);\n  scheduledTime.setHours(randomHours, Math.floor(Math.random() * 60), 0, 0);\n  \n  return {\n    text: finalContent,\n    profile_ids: [profileId],\n    scheduled_at: Math.floor(scheduledTime.getTime() / 1000), // Unix timestamp\n    platform: post.platform,\n    originalMessageId: contentData.messageId,\n    commandUsed: contentData.command,\n    scheduledDateTime: scheduledTime.toISOString()\n  };\n}).filter(post => post !== null);\n\nreturn {\n  ...contentData,\n  bufferPosts,\n  totalPostsToSchedule: bufferPosts.length,\n  platformsToPost: bufferPosts.map(p => p.platform),\n  readyForBuffer: bufferPosts.length > 0\n};"
+      },
+      "id": "buffer-post-creator",
+      "name": "📱 Buffer Post Creator",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1400, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Split buffer posts for individual API calls\nconst postData = $input.first().json;\nreturn postData.bufferPosts.map(bufferPost => ({\n  ...postData,\n  currentBufferPost: bufferPost\n}));"
+      },
+      "id": "split-buffer-posts",
+      "name": "🔄 Split Buffer Posts",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1600, 300]
+    },
+    {
+      "parameters": {
+        "url": "https://api.bufferapp.com/1/updates/create.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "bufferApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "form",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "={{$json.currentBufferPost.text}}"
+            },
+            {
+              "name": "profile_ids[]",
+              "value": "={{$json.currentBufferPost.profile_ids[0]}}"
+            },
+            {
+              "name": "scheduled_at",
+              "value": "={{$json.currentBufferPost.scheduled_at}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "buffer-api-post",
+      "name": "📱 Buffer API Post",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1800, 300],
+      "credentials": {
+        "bufferApi": {
+          "id": "buffer-api-key",
+          "name": "Buffer API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{$('Command Parser & Agent Brain').first().json.chatId}}",
+        "text": "✅ *Commande exécutée avec succès!*\n\n🎯 *Commande : {{$('Command Parser & Agent Brain').first().json.command || 'AUTO'}}*\n{{$('Command Parser & Agent Brain').first().json.commandConfig?.description || 'Traitement automatique'}}\n\n📊 *Résultats :*\n• Transformer utilisé : {{$('Content Processor').first().json.transformerUsed}}\n• Score qualité final : {{$('Content Processor').first().json.finalQualityScore}}/100\n• Plateformes ciblées : {{$('Content Processor').first().json.targetPlatforms.join(', ')}}\n• Posts programmés : {{$('Buffer Post Creator').first().json.totalPostsToSchedule}}\n\n🚀 *Status :* {{$('Content Processor').first().json.postingStatus}}\n\n📱 Tes posts sont maintenant programmés aléatoirement via Buffer!",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-success-response",
+      "name": "📱 Success Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1200, 500],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-api",
+          "name": "Telegram Bot API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{$('Command Parser & Agent Brain').first().json.chatId}}",
+        "text": "❓ *Commande non reconnue*\n\n🤖 *Commandes disponibles :*\n\n**Actions principales :**\n• `BC` - Post simple avec arrière-plan coloré\n• `BCW` - Post avec arrière-plan + commentaires\n• `SC` - Résumer le contenu\n• `BG` - Créer du contexte/background\n• `CGO` - Corriger grammaire uniquement\n• `MIB` - Améliorer le texte\n• `PAI` - Poster tel quel\n• `TL` - Traduire\n• `KPC` - Extraire points clés\n\n**Média :**\n• `IM` - Inclure média\n• `KPCV` - Points clés de vidéo\n• `KPS` - Points clés + segments\n• `CVS` - Créer segments vidéo\n• `IP` - Analyser image\n\n**Exemples :**\n`SC Platform: LinkedIn, Facebook`\n`TL Language: French, English`\n`KPC Tone: Professional`",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "telegram-help-response",
+      "name": "❓ Help Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [600, 600],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-api",
+          "name": "Telegram Bot API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "📱 Telegram Message Trigger": {
+      "main": [
+        [
+          {
+            "node": "🎯 Command Parser & Agent Brain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎯 Command Parser & Agent Brain": {
+      "main": [
+        [
+          {
+            "node": "📊 Save Raw Content",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📝 Text Transformer Route",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🎥 Video Transformer Route",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🖼️ Image Transformer Route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Text Transformer Route": {
+      "main": [
+        [
+          {
+            "node": "📝 Text Transformer (AI)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "❓ Help Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎥 Video Transformer Route": {
+      "main": [
+        [
+          {
+            "node": "🎥 Video Transformer (AI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🖼️ Image Transformer Route": {
+      "main": [
+        [
+          {
+            "node": "🖼️ Image Transformer (AI)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📝 Text Transformer (AI)": {
+      "main": [
+        [
+          {
+            "node": "🔄 Content Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎥 Video Transformer (AI)": {
+      "main": [
+        [
+          {
+            "node": "🔄 Content Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🖼️ Image Transformer (AI)": {
+      "main": [
+        [
+          {
+            "node": "🔄 Content Processor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Content Processor": {
+      "main": [
+        [
+          {
+            "node": "💾 Save Processed Content",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📱 Buffer Post Creator",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "📱 Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📱 Buffer Post Creator": {
+      "main": [
+        [
+          {
+            "node": "🔄 Split Buffer Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Split Buffer Posts": {
+      "main": [
+        [
+          {
+            "node": "📱 Buffer API Post",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2025-01-15T00:00:00.000Z",
+      "updatedAt": "2025-01-15T00:00:00.000Z",
+      "id": "complete-command-system",
+      "name": "Complete Command System"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-15T00:00:00.000Z",
+  "versionId": "complete-v1.0"
+}

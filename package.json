@@ -1,0 +1,22 @@
+{
+  "name": "n8n-json-downloader",
+  "version": "1.0.0",
+  "description": "Download JSON files from Google Drive links in CSV file",
+  "main": "download_json_files.js",
+  "scripts": {
+    "start": "node download_json_files.js",
+    "download": "node download_json_files.js"
+  },
+  "dependencies": {
+    "csv-parse": "^5.5.0"
+  },
+  "keywords": [
+    "n8n",
+    "json",
+    "download",
+    "google-drive",
+    "csv"
+  ],
+  "author": "",
+  "license": "MIT"
+}

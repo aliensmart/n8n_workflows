@@ -1,0 +1,400 @@
+{
+  "name": "Smart AI Agent Social Media - Auto Format + Commands",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "id": "telegram-trigger",
+      "name": "📱 Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [200, 400],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-api",
+          "name": "Telegram Bot API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{$json.message.from.id}}_{{Date.now()}}",
+        "chatModel": "gpt-4o",
+        "options": {
+          "systemMessage": "Tu es un agent intelligent spécialisé en création de contenu pour réseaux sociaux français. Tu as deux modes:\n\n**MODE COMMANDE**: Si l'utilisateur donne une commande explicite (BC, BCW, SC, etc.), tu la suis exactement.\n\n**MODE AUTO (défaut)**: Si c'est du contenu naturel sans commande, tu créés automatiquement:\n- 1 post long avec langage formel pour le contexte général\n- 5-10 posts courts numérotés avec commentaires détaillés\n- Format spécifique français:\n\n**[Numéro]. [Post court et complet - max 80 caractères pour Facebook background]**\n**Commentaire :** [Explication détaillée 3-10 phrases avec exemples, analyses, insights]\n\n**RÈGLES CRITIQUES:**\n- Le post numéroté doit être COMPLET et compréhensible seul (pas un titre!)\n- Maximum 80 caractères pour compatibilité Facebook background\n- Le commentaire peut être long (3-10 phrases) pour ceux qui veulent comprendre plus\n- Le lecteur ne DOIT PAS avoir besoin du commentaire pour comprendre l'idée principale\n\n**STYLES DE CONTENU:**\n- Sagesse/Réflexion (défaut)\n- Sarcasme/Ironie\n- Humour/Blagues\n- Roasting/Critique\n- Motivation/Inspiration\n- Révélations/Vérités crues\n\nTu adaptes automatiquement le style selon le ton du contenu fourni.\n\n**COMMANDES DISPONIBLES:**\n- BC: Post simple arrière-plan coloré\n- BCW: Post arrière-plan + commentaires\n- SC: Résumer le contenu\n- BG: Créer contexte/background\n- CGO: Corriger grammaire uniquement\n- MIB: Améliorer structure et lisibilité\n- PAI: Poster tel quel\n- TL: Traduire\n- KPC: Extraire points clés\n- IM: Inclure média\n- KPCV: Points clés vidéo\n- KPS: Points clés + segments\n- CVS: Créer segments vidéo\n- IP: Analyser image\n\n**Exemple de transformation automatique:**\nInput: \"De la manière dont devier ton guidon quelque millimètre peut coûter ta vie, c'est ainsi que les mauvais choix ruinent une vie\"\n\nOutput:\n**1. Un millimètre de volant = accident. Un petit choix = vie gâchée.**\n**Commentaire :** Ce sont les petites décisions négligées, prises au quotidien, qui construisent ou détruisent ton avenir. Comme un conducteur qui ne corrige pas sa trajectoire, on peut dériver lentement vers l'échec sans s'en rendre compte. La plupart des grandes catastrophes de vie commencent par des compromis \"insignifiants\" qu'on accumule jour après jour. C'est pourquoi il faut surveiller ses micro-décisions autant que les grandes.\n\n**2. Tu ne rates pas ta vie d'un coup… tu la rates choix par choix.**\n**Commentaire :** La dérive ne se voit pas au départ, mais plus tu avances dans la mauvaise direction, plus tu t'éloignes de ton vrai but. Chaque mauvaise décision rend la suivante plus facile à prendre. C'est l'effet domino psychologique : une fois qu'on accepte de compromettre nos valeurs \"juste cette fois\", on établit un précédent dangereux. L'échec n'est jamais soudain, il est toujours progressif et prévisible pour qui sait regarder.\n\n[Continue pour 5-10 posts]\n\n**EXEMPLE SARCASME:**\n**1. \"Suis ton cœur\" disent ceux qui ont tout raté en suivant le leur.**\n**Commentaire :** Ah, le fameux conseil de suivre son cœur ! Généralement donné par des gens qui ont enchaîné les relations toxiques et les décisions impulsives. Le cœur, c'est bien pour aimer, mais pour les décisions importantes, on a inventé le cerveau. Ton cœur te dit de manger du chocolat à 23h et d'envoyer des textos à ton ex. Ton cœur n'a jamais payé tes factures ni préparé ton avenir. Alors oui, écoute ton cœur, mais laisse ton cerveau conduire.\n\nSois toujours authentique, profond et engageant. Adapte le style selon le contenu fourni.",
+          "temperature": 0.8,
+          "maxTokens": 3000
+        }
+      },
+      "id": "ai-agent",
+      "name": "🧠 Smart AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1,
+      "position": [400, 400],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-api-key",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "message_data",
+              "name": "messageData",
+              "value": "={{$json.message}}",
+              "type": "object"
+            },
+            {
+              "id": "agent_response",
+              "name": "agentResponse",
+              "value": "={{$json.output}}",
+              "type": "string"
+            },
+            {
+              "id": "user_input",
+              "name": "userInput",
+              "value": "={{$json.message.text || ''}}",
+              "type": "string"
+            },
+            {
+              "id": "chat_id",
+              "name": "chatId",
+              "value": "={{$json.message.chat.id}}",
+              "type": "number"
+            },
+            {
+              "id": "user_id",
+              "name": "userId",
+              "value": "={{$json.message.from.id}}",
+              "type": "number"
+            },
+            {
+              "id": "message_id",
+              "name": "messageId",
+              "value": "={{$json.message.message_id}}",
+              "type": "number"
+            },
+            {
+              "id": "timestamp",
+              "name": "timestamp",
+              "value": "={{new Date().toISOString()}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "data-extractor",
+      "name": "📊 Data Extractor",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.3,
+      "position": [600, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 🤖 Smart Content Analyzer & Command Detector\nconst userInput = $input.first().json.userInput || '';\nconst agentResponse = $input.first().json.agentResponse || '';\nconst messageData = $input.first().json.messageData || {};\n\n// 🔍 Advanced Command Detection\nconst COMMANDS = {\n  'BC': { action: 'background_content', priority: 1, postType: 'Background' },\n  'BCW': { action: 'background_with_comments', priority: 2, postType: 'Background' },\n  'SC': { action: 'summary_content', priority: 3, postType: 'Short' },\n  'BG': { action: 'background_generation', priority: 2, postType: 'Full' },\n  'CGO': { action: 'grammar_only', priority: 1, postType: 'Original' },\n  'MIB': { action: 'make_better', priority: 2, postType: 'Improved' },\n  'PAI': { action: 'post_as_is', priority: 1, postType: 'Original' },\n  'TL': { action: 'translate', priority: 1, postType: 'Translated' },\n  'KPC': { action: 'key_points', priority: 3, postType: 'Points' }\n};\n\nfunction detectCommand(text) {\n  const upperText = text.toUpperCase();\n  let command = null;\n  let parameters = {};\n  \n  // Check for explicit commands\n  for (const [cmd, config] of Object.entries(COMMANDS)) {\n    if (upperText.startsWith(cmd + ' ') || upperText === cmd) {\n      command = cmd;\n      break;\n    }\n  }\n  \n  // Extract parameters\n  const platformMatch = text.match(/Platform[:\\s]+(.*?)(?=\\s+[A-Z]+:|$)/i);\n  if (platformMatch) {\n    parameters.platforms = platformMatch[1].split(',').map(p => p.trim());\n  }\n  \n  const languageMatch = text.match(/Language[:\\s]+(.*?)(?=\\s+[A-Z]+:|$)/i);\n  if (languageMatch) {\n    parameters.languages = languageMatch[1].split(',').map(l => l.trim());\n  }\n  \n  const toneMatch = text.match(/Tone[:\\s]+(\\w+)/i);\n  if (toneMatch) {\n    parameters.tone = toneMatch[1];\n  }\n  \n  // Clean content\n  let cleanContent = text;\n  if (command) {\n    cleanContent = text.replace(new RegExp(`^${command}\\\\s*`, 'i'), '');\n    cleanContent = cleanContent\n      .replace(/Platform[:\\s]+[^\\n]+/gi, '')\n      .replace(/Language[:\\s]+[^\\n]+/gi, '')\n      .replace(/Tone[:\\s]+\\w+/gi, '')\n      .trim();\n  }\n  \n  return { command, parameters, cleanContent, hasCommand: !!command };\n}\n\n// 📊 Content Analysis\nfunction analyzeContent(content, agentResponse) {\n  const commandAnalysis = detectCommand(content);\n  \n  // Check if agent created multiple numbered posts\n  const hasNumberedPosts = agentResponse.match(/\\*\\*\\d+\\./g)?.length > 1;\n  const postCount = agentResponse.match(/\\*\\*\\d+\\./g)?.length || 0;\n  \n  // Detect content type\n  let contentType = 'text';\n  if (content.match(/https?:\\/\\/.+\\.(jpg|jpeg|png|gif)/i)) contentType = 'image_url';\n  if (content.match(/https?:\\/\\/.+\\.(mp4|avi|mov)/i)) contentType = 'video_url';\n  if (messageData.document) contentType = 'document';\n  if (messageData.photo) contentType = 'image';\n  if (messageData.video) contentType = 'video';\n  \n  // Detect content style/tone\n  let contentStyle = 'wisdom';\n  const lowerContent = content.toLowerCase();\n  const lowerResponse = agentResponse.toLowerCase();\n  \n  if (lowerContent.includes('lol') || lowerContent.includes('mdr') || \n      lowerResponse.includes('blague') || lowerResponse.includes('rigol')) {\n    contentStyle = 'humor';\n  } else if (lowerContent.includes('ironique') || lowerResponse.includes('sarcas') ||\n            lowerResponse.includes('ah, le fameux') || lowerResponse.includes('généralement donné par')) {\n    contentStyle = 'sarcasm';\n  } else if (lowerContent.includes('critique') || lowerContent.includes('roast') ||\n            lowerResponse.includes('vérité qui dérange') || lowerResponse.includes('réveil brutal')) {\n    contentStyle = 'roasting';\n  } else if (lowerContent.includes('motiv') || lowerResponse.includes('inspiration') ||\n            lowerResponse.includes('tu peux') || lowerResponse.includes('réussi')) {\n    contentStyle = 'motivation';\n  }\n  \n  // Quality scoring with style bonus\n  let qualityScore = 50;\n  if (hasNumberedPosts) qualityScore += 30;\n  if (postCount >= 5) qualityScore += 20;\n  if (agentResponse.includes('**Commentaire :**')) qualityScore += 20;\n  if (agentResponse.length > 500) qualityScore += 10;\n  \n  // Style-specific bonuses\n  if (contentStyle === 'sarcasm' && agentResponse.includes('Ah,')) qualityScore += 15;\n  if (contentStyle === 'humor' && agentResponse.match(/😂|😅|🤣/)) qualityScore += 10;\n  if (contentStyle === 'roasting' && agentResponse.includes('vérité')) qualityScore += 15;\n  \n  return {\n    ...commandAnalysis,\n    contentType,\n    contentStyle,\n    hasNumberedPosts,\n    postCount,\n    qualityScore: Math.min(100, qualityScore),\n    isAutoFormat: !commandAnalysis.hasCommand && hasNumberedPosts\n  };\n}\n\n// 🎯 Platform Configuration\nconst defaultPlatforms = ['Facebook', 'Instagram', 'LinkedIn'];\nconst defaultLanguages = ['French'];\nconst defaultTone = 'Authentic';\n\n// Main Analysis\nconst analysis = analyzeContent(userInput, agentResponse);\n\n// Generate unique content ID\nconst contentId = `content_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;\n\n// 🚀 Create processing configuration\nconst processingConfig = {\n  // Core identifiers\n  contentId,\n  messageId: $input.first().json.messageId,\n  chatId: $input.first().json.chatId,\n  userId: $input.first().json.userId,\n  timestamp: $input.first().json.timestamp,\n  \n  // Content data\n  originalInput: userInput,\n  agentResponse: agentResponse,\n  cleanContent: analysis.cleanContent,\n  \n  // Analysis results\n  hasCommand: analysis.hasCommand,\n  command: analysis.command,\n  parameters: analysis.parameters,\n  contentType: analysis.contentType,\n  \n  // Content intelligence\n  isAutoFormat: analysis.isAutoFormat,\n  hasNumberedPosts: analysis.hasNumberedPosts,\n  postCount: analysis.postCount,\n  qualityScore: analysis.qualityScore,\n  contentStyle: analysis.contentStyle,\n  \n  // Processing configuration\n  targetPlatforms: analysis.parameters.platforms || defaultPlatforms,\n  languages: analysis.parameters.languages || defaultLanguages,\n  tone: analysis.parameters.tone || defaultTone,\n  \n  // Post type determination\n  postType: analysis.command ? COMMANDS[analysis.command]?.postType : \n           (analysis.hasNumberedPosts ? 'Multiple Short Posts' : 'Full Post'),\n  \n  // Processing flags\n  needsPlatformOptimization: true,\n  needsBufferScheduling: true,\n  readyForPosting: analysis.qualityScore > 70,\n  \n  // Agent intelligence metadata\n  processingMode: analysis.hasCommand ? 'COMMAND_MODE' : 'AUTO_MODE',\n  contentStrategy: analysis.hasNumberedPosts ? 'MULTIPLE_POSTS' : 'SINGLE_POST',\n  \n  // File information\n  hasFiles: !!(messageData.document || messageData.photo || messageData.video),\n  fileInfo: messageData.document || messageData.photo || messageData.video || null\n};\n\nreturn processingConfig;"
+      },
+      "id": "smart-analyzer",
+      "name": "🔍 Smart Content Analyzer",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [800, 400]
+    },
+    {
+      "parameters": {
+        "jsCode": "// 🎨 Advanced Content Formatter - Creates Platform-Specific Posts\nconst config = $input.first().json;\nconst agentResponse = config.agentResponse || '';\n\n// 📱 Platform Specifications\nconst PLATFORM_SPECS = {\n  'Facebook': { \n    maxLength: 2000, \n    tone: 'Conversational', \n    hashtagLimit: 10,\n    supportsFormatting: true,\n    audience: 'Broad community'\n  },\n  'Instagram': { \n    maxLength: 2200, \n    tone: 'Visual-focused', \n    hashtagLimit: 30,\n    supportsFormatting: true,\n    audience: 'Visual engagement'\n  },\n  'LinkedIn': { \n    maxLength: 1300, \n    tone: 'Professional', \n    hashtagLimit: 5,\n    supportsFormatting: true,\n    audience: 'Professional network'\n  },\n  'Twitter': { \n    maxLength: 280, \n    tone: 'Concise', \n    hashtagLimit: 2,\n    supportsFormatting: false,\n    audience: 'Quick engagement'\n  }\n};\n\n// 🔄 Content Processing Functions\nfunction extractNumberedPosts(content) {\n  const posts = [];\n  // Updated regex to handle longer comments (3-10 phrases)\n  const postRegex = /\\*\\*(\\d+)\\.\\s*([^*]+?)\\*\\*\\s*\\*\\*Commentaire\\s*:\\*\\*\\s*([\\s\\S]*?)(?=\\*\\*\\d+\\.|$)/g;\n  let match;\n  \n  while ((match = postRegex.exec(content)) !== null) {\n    const postText = match[2].trim();\n    const comment = match[3].trim();\n    \n    // Ensure post meets Facebook background limit (80 chars)\n    let finalPost = postText;\n    if (postText.length > 80) {\n      // Try to shorten while keeping meaning\n      const shortened = shortenForFacebook(postText);\n      finalPost = shortened;\n    }\n    \n    posts.push({\n      number: parseInt(match[1]),\n      post: finalPost,\n      originalPost: postText,\n      comment: comment,\n      fullPost: match[0],\n      characterCount: finalPost.length,\n      facebookReady: finalPost.length <= 80\n    });\n  }\n  \n  return posts;\n}\n\nfunction shortenForFacebook(text) {\n  if (text.length <= 80) return text;\n  \n  // Smart shortening strategies\n  let shortened = text;\n  \n  // Remove redundant words\n  shortened = shortened.replace(/\\s+très\\s+/, ' ');\n  shortened = shortened.replace(/\\s+vraiment\\s+/, ' ');\n  shortened = shortened.replace(/\\s+exactement\\s+/, ' ');\n  \n  // Replace long phrases with shorter ones\n  shortened = shortened.replace(/quelque chose/, 'qqch');\n  shortened = shortened.replace(/quelqu'un/, 'qqn');\n  shortened = shortened.replace(/c'est-à-dire/, 'càd');\n  \n  // If still too long, truncate intelligently\n  if (shortened.length > 80) {\n    // Find last complete word before 77 chars (leave room for \"...\")\n    const truncated = shortened.substring(0, 77);\n    const lastSpace = truncated.lastIndexOf(' ');\n    shortened = truncated.substring(0, lastSpace) + '...';\n  }\n  \n  return shortened;\n}\n\nfunction createPlatformVersion(post, platform, specs, contentStyle) {\n  let content = '';\n  \n  if (config.hasNumberedPosts) {\n    // Format for numbered posts - use complete post, not title\n    content = `${post.number}. ${post.post}\\n\\n${post.comment}`;\n  } else {\n    // Format for single content\n    content = agentResponse;\n  }\n  \n  // Platform-specific adjustments based on content style\n  if (platform === 'LinkedIn') {\n    content = content.replace(/\\*\\*/g, ''); // Remove bold for LinkedIn\n    if (contentStyle === 'sarcasm') {\n      content = `🤔 ${content}`; // Thoughtful emoji for sarcasm\n    } else if (contentStyle === 'motivation') {\n      content = `💡 ${content}`; // Professional motivation\n    } else {\n      content = `💭 ${content}`; // Reflection emoji\n    }\n  } else if (platform === 'Twitter') {\n    // Shorten for Twitter\n    if (content.length > specs.maxLength - 20) {\n      content = content.substring(0, specs.maxLength - 23) + '...';\n    }\n  } else if (platform === 'Instagram') {\n    if (contentStyle === 'humor') {\n      content = `😂 ${content} 😂`; // Humor emojis\n    } else if (contentStyle === 'sarcasm') {\n      content = `🙄 ${content} 🙄`; // Sarcasm emojis\n    } else if (contentStyle === 'roasting') {\n      content = `🔥 ${content} 🔥`; // Fire emojis for roasting\n    } else {\n      content = `✨ ${content} ✨`; // Default visual elements\n    }\n  } else if (platform === 'Facebook') {\n    // Facebook handles all styles well without modification\n    // Just ensure proper formatting\n  }\n  \n  // Ensure character limits\n  if (content.length > specs.maxLength) {\n    content = content.substring(0, specs.maxLength - 3) + '...';\n  }\n  \n  return content;\n}\n\nfunction generateHashtags(content, platform, limit, contentStyle) {\n  const baseHashtags = [];\n  \n  // Style-specific hashtags\n  if (contentStyle === 'sarcasm') {\n    baseHashtags.push('#sarcasme', '#ironie', '#vérité', '#realité');\n  } else if (contentStyle === 'humor') {\n    baseHashtags.push('#humour', '#blague', '#rire', '#drôle');\n  } else if (contentStyle === 'roasting') {\n    baseHashtags.push('#vérité', '#réveil', '#réalité', '#faits');\n  } else if (contentStyle === 'motivation') {\n    baseHashtags.push('#motivation', '#inspiration', '#changement', '#succès');\n  }\n  \n  // Content-based hashtags\n  if (content.toLowerCase().includes('amour')) {\n    baseHashtags.push('#amour', '#relations', '#couple');\n  }\n  if (content.toLowerCase().includes('choix') || content.toLowerCase().includes('décision')) {\n    baseHashtags.push('#choix', '#décisions', '#vie');\n  }\n  \n  // Add platform-specific hashtags\n  if (platform === 'LinkedIn') {\n    if (contentStyle === 'sarcasm') {\n      baseHashtags.push('#leadership', '#mindset');\n    } else {\n      baseHashtags.push('#développementpersonnel', '#réflexion');\n    }\n  } else if (platform === 'Instagram') {\n    baseHashtags.push('#lifestyle', '#pensées', '#citation', '#réflexion');\n    if (contentStyle === 'humor') {\n      baseHashtags.push('#memes', '#funny', '#mood');\n    }\n  } else if (platform === 'Facebook') {\n    baseHashtags.push('#partage', '#communauté');\n  }\n  \n  // Default hashtags\n  baseHashtags.push('#philosophie', '#sagesse', '#croissance');\n  \n  return [...new Set(baseHashtags)].slice(0, limit);\n}\n\n// 🎯 Main Processing\nlet formattedPosts = [];\n\nif (config.hasNumberedPosts) {\n  // Process multiple numbered posts\n  const extractedPosts = extractNumberedPosts(agentResponse);\n  \n  extractedPosts.forEach(post => {\n    config.targetPlatforms.forEach(platform => {\n      const specs = PLATFORM_SPECS[platform] || PLATFORM_SPECS['Facebook'];\n      const platformContent = createPlatformVersion(post, platform, specs, config.contentStyle);\n      const hashtags = generateHashtags(platformContent, platform, specs.hashtagLimit, config.contentStyle);\n      \n      formattedPosts.push({\n        contentId: `${config.contentId}_post${post.number}_${platform.toLowerCase()}`,\n        platform,\n        postNumber: post.number,\n        content: platformContent,\n        hashtags,\n        originalPost: post.post,\n        originalComment: post.comment,\n        characterCount: post.characterCount,\n        facebookReady: post.facebookReady,\n        contentStyle: config.contentStyle,\n        readyForScheduling: true,\n        postType: 'numbered_short_post'\n      });\n    });\n  });\n  \n  // Create one long post for context (formal language)\n  const longPostContent = `Réflexion du jour :\\n\\n${config.originalInput}\\n\\nCette question mérite qu'on s'y arrête. Dans nos relations, nous cherchons souvent des preuves d'amour qui correspondent à notre propre façon d'aimer, sans réaliser que l'autre exprime peut-être ses sentiments différemment. La compréhension mutuelle passe par l'acceptation de ces différences.`;\n  \n  config.targetPlatforms.forEach(platform => {\n    const specs = PLATFORM_SPECS[platform] || PLATFORM_SPECS['Facebook'];\n    let content = longPostContent;\n    \n    if (content.length > specs.maxLength) {\n      content = content.substring(0, specs.maxLength - 3) + '...';\n    }\n    \n    formattedPosts.push({\n      contentId: `${config.contentId}_long_${platform.toLowerCase()}`,\n      platform,\n      postNumber: 0, // 0 indicates long post\n      content,\n      hashtags: generateHashtags(content, platform, specs.hashtagLimit, config.contentStyle),\n      contentStyle: config.contentStyle,\n      readyForScheduling: true,\n      postType: 'long_formal_post'\n    });\n  });\n  \n} else {\n  // Process single content\n  config.targetPlatforms.forEach(platform => {\n    const specs = PLATFORM_SPECS[platform] || PLATFORM_SPECS['Facebook'];\n    const content = createPlatformVersion({ post: agentResponse, comment: '' }, platform, specs, config.contentStyle);\n    const hashtags = generateHashtags(content, platform, specs.hashtagLimit, config.contentStyle);\n    \n    formattedPosts.push({\n      contentId: `${config.contentId}_single_${platform.toLowerCase()}`,\n      platform,\n      postNumber: 1,\n      content,\n      hashtags,\n      contentStyle: config.contentStyle,\n      readyForScheduling: true,\n      postType: 'single_post'\n    });\n  });\n}\n\n// 📊 Generate Summary\nconst summary = {\n  totalPosts: formattedPosts.length,\n  numberedPosts: formattedPosts.filter(p => p.postType === 'numbered_short_post').length,\n  longPosts: formattedPosts.filter(p => p.postType === 'long_formal_post').length,\n  platformsTargeted: config.targetPlatforms,\n  processingMode: config.processingMode,\n  qualityScore: config.qualityScore\n};\n\nreturn {\n  ...config,\n  formattedPosts,\n  summary,\n  processingComplete: true,\n  readyForBuffer: true\n};"
+      },
+      "id": "content-formatter",
+      "name": "🎨 Advanced Content Formatter",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1000, 400]
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_GOOGLE_SHEET_ID",
+        "sheetName": "Smart Content Processing",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Content ID": "={{$json.contentId}}",
+            "Timestamp": "={{$json.timestamp}}",
+            "User Input": "={{$json.originalInput}}",
+            "Processing Mode": "={{$json.processingMode}}",
+            "Command Used": "={{$json.command || 'AUTO'}}",
+            "Has Numbered Posts": "={{$json.hasNumberedPosts}}",
+            "Post Count": "={{$json.summary.totalPosts}}",
+            "Quality Score": "={{$json.qualityScore}}",
+            "Target Platforms": "={{$json.targetPlatforms.join(', ')}}",
+            "Agent Response": "={{$json.agentResponse.substring(0, 500)}}...",
+            "Ready For Posting": "={{$json.readyForBuffer}}",
+            "Content Strategy": "={{$json.contentStrategy}}",
+            "Long Posts": "={{$json.summary.longPosts}}",
+            "Short Posts": "={{$json.summary.numberedPosts}}",
+            "Content Style": "={{$json.contentStyle || 'wisdom'}}",
+            "Facebook Ready": "={{$json.formattedPosts.filter(p => p.facebookReady !== false).length}}"
+          }
+        },
+        "options": {}
+      },
+      "id": "save-processing-log",
+      "name": "📊 Save Processing Log",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1200, 300],
+      "credentials": {
+        "googleSheetsApi": {
+          "id": "google-sheets-api",
+          "name": "Google Sheets API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// 🔄 Buffer Post Splitter - Creates individual posts for Buffer API\nconst data = $input.first().json;\nconst posts = data.formattedPosts || [];\n\n// 🎲 Smart Scheduling Logic\nfunction generateRandomSchedule(index, total) {\n  const now = new Date();\n  \n  // For numbered posts: spread over 1-14 days\n  // For long posts: schedule sooner (within 1-3 days)\n  const isLongPost = index === 0; // Long posts are usually first\n  const maxDays = isLongPost ? 3 : 14;\n  const minDays = isLongPost ? 0.1 : 1; // Long post can be posted within hours\n  \n  const randomDays = Math.random() * (maxDays - minDays) + minDays;\n  const randomHours = Math.floor(Math.random() * 16) + 6; // 6 AM to 10 PM\n  const randomMinutes = Math.floor(Math.random() * 60);\n  \n  const scheduledTime = new Date(now);\n  scheduledTime.setDate(now.getDate() + Math.floor(randomDays));\n  scheduledTime.setHours(randomHours, randomMinutes, 0, 0);\n  \n  return scheduledTime;\n}\n\n// 🏷️ Buffer Profile Mapping\nconst BUFFER_PROFILES = {\n  'Facebook': 'YOUR_FACEBOOK_PROFILE_ID',\n  'Instagram': 'YOUR_INSTAGRAM_PROFILE_ID', \n  'LinkedIn': 'YOUR_LINKEDIN_PROFILE_ID',\n  'Twitter': 'YOUR_TWITTER_PROFILE_ID'\n};\n\n// Create Buffer-ready posts\nconst bufferPosts = posts.map((post, index) => {\n  const profileId = BUFFER_PROFILES[post.platform];\n  \n  if (!profileId || profileId.startsWith('YOUR_')) {\n    return null; // Skip unconfigured platforms\n  }\n  \n  const scheduledTime = generateRandomSchedule(index, posts.length);\n  \n  // Format content with hashtags\n  let finalContent = post.content;\n  if (post.hashtags && post.hashtags.length > 0) {\n    finalContent += '\\n\\n' + post.hashtags.join(' ');\n  }\n  \n  return {\n    ...data, // Include all original data\n    currentPost: {\n      text: finalContent,\n      profile_ids: [profileId],\n      scheduled_at: Math.floor(scheduledTime.getTime() / 1000),\n      platform: post.platform,\n      postNumber: post.postNumber,\n      postType: post.postType,\n      contentId: post.contentId,\n      scheduledDateTime: scheduledTime.toISOString(),\n      originalPost: post.originalPost || '',\n      originalComment: post.originalComment || '',\n      characterCount: post.characterCount || finalContent.length,\n      facebookReady: post.facebookReady !== false,\n      contentStyle: post.contentStyle || 'wisdom',\n      isLongPost: post.postType === 'long_formal_post'\n    }\n  };\n}).filter(post => post !== null);\n\nreturn bufferPosts;"
+      },
+      "id": "buffer-splitter",
+      "name": "🎲 Smart Buffer Scheduler",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [1200, 500]
+    },
+    {
+      "parameters": {
+        "url": "https://api.bufferapp.com/1/updates/create.json",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "bufferApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Content-Type",
+              "value": "application/x-www-form-urlencoded"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "form",
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "text",
+              "value": "={{$json.currentPost.text}}"
+            },
+            {
+              "name": "profile_ids[]",
+              "value": "={{$json.currentPost.profile_ids[0]}}"
+            },
+            {
+              "name": "scheduled_at",
+              "value": "={{$json.currentPost.scheduled_at}}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "buffer-api",
+      "name": "📱 Buffer API Scheduler",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.1,
+      "position": [1400, 500],
+      "credentials": {
+        "bufferApi": {
+          "id": "buffer-api-key",
+          "name": "Buffer API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "operation": "appendOrUpdate",
+        "documentId": "YOUR_GOOGLE_SHEET_ID",
+        "sheetName": "Scheduled Posts",
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Content ID": "={{$json.currentPost.contentId}}",
+            "Platform": "={{$json.currentPost.platform}}",
+            "Post Number": "={{$json.currentPost.postNumber}}",
+            "Post Type": "={{$json.currentPost.postType}}",
+            "Scheduled Date": "={{$json.currentPost.scheduledDateTime}}",
+            "Content Preview": "={{$json.currentPost.text.substring(0, 100)}}...",
+            "Is Long Post": "={{$json.currentPost.isLongPost}}",
+            "Character Count": "={{$json.currentPost.characterCount || 'N/A'}}",
+            "Facebook Ready": "={{$json.currentPost.facebookReady || 'N/A'}}",
+            "Content Style": "={{$json.contentStyle || 'wisdom'}}",
+            "Buffer Response": "={{$json.id || 'Scheduled'}}",
+            "Status": "scheduled",
+            "Created At": "={{new Date().toISOString()}}"
+          }
+        },
+        "options": {}
+      },
+      "id": "save-scheduled-posts",
+      "name": "📋 Save Scheduled Posts",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1600, 500],
+      "credentials": {
+        "googleSheetsApi": {
+          "id": "google-sheets-api",
+          "name": "Google Sheets API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{$('Data Extractor').first().json.chatId}}",
+        "text": "✅ **Contenu traité avec succès!**\n\n🧠 **Mode:** {{$('Smart Content Analyzer').first().json.processingMode}}\n{{$('Smart Content Analyzer').first().json.command ? '🎯 **Commande:** ' + $('Smart Content Analyzer').first().json.command : '🤖 **Mode Auto:** Génération intelligente'}}\n\n🎨 **Style détecté:** {{$('Smart Content Analyzer').first().json.contentStyle || 'wisdom'}}\n\n📊 **Résultats:**\n• Posts créés: {{$('Advanced Content Formatter').first().json.summary.totalPosts}}\n• Posts courts: {{$('Advanced Content Formatter').first().json.summary.numberedPosts}}\n• Posts longs: {{$('Advanced Content Formatter').first().json.summary.longPosts}}\n• Score qualité: {{$('Smart Content Analyzer').first().json.qualityScore}}/100\n\n🎯 **Plateformes ciblées:**\n{{$('Smart Content Analyzer').first().json.targetPlatforms.join(', ')}}\n\n📱 **Facebook Background Ready:** Oui (max 80 caractères)\n\n🚀 **Status:** Tous tes posts sont programmés aléatoirement via Buffer!\n\n{{$('Smart Content Analyzer').first().json.hasNumberedPosts ? '✨ Format automatique appliqué avec posts numérotés + commentaires détaillés!' : '📝 Contenu formaté selon ta commande!'}}",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "success-notification",
+      "name": "✅ Success Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1200, 700],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-api",
+          "name": "Telegram Bot API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{$('Data Extractor').first().json.chatId}}",
+        "text": "❌ **Erreur de traitement**\n\nUne erreur s'est produite lors du traitement de ton contenu. Voici quelques suggestions:\n\n🔄 **Essaie:**\n• Reformuler ton message\n• Utiliser une commande explicite (SC, MIB, etc.)\n• Vérifier que ton contenu fait plus de 10 caractères\n\n📝 **Commandes disponibles:**\n• `SC Platform: Facebook` - Résumer\n• `MIB Tone: Professional` - Améliorer\n• `TL Language: French, English` - Traduire\n• Ou simplement écris ton contenu et je le transformerai automatiquement!\n\n🤖 **Mode auto:** Envois-moi n'importe quel contenu et je créerai automatiquement des posts numérotés avec commentaires!",
+        "additionalFields": {
+          "parse_mode": "Markdown"
+        }
+      },
+      "id": "error-notification",
+      "name": "❌ Error Notification",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [800, 700],
+      "credentials": {
+        "telegramApi": {
+          "id": "telegram-bot-api",
+          "name": "Telegram Bot API"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "📱 Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "🧠 Smart AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🧠 Smart AI Agent": {
+      "main": [
+        [
+          {
+            "node": "📊 Data Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📊 Data Extractor": {
+      "main": [
+        [
+          {
+            "node": "🔍 Smart Content Analyzer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔍 Smart Content Analyzer": {
+      "main": [
+        [
+          {
+            "node": "🎨 Advanced Content Formatter",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎨 Advanced Content Formatter": {
+      "main": [
+        [
+          {
+            "node": "📊 Save Processing Log",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "🎲 Smart Buffer Scheduler",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "✅ Success Notification",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🎲 Smart Buffer Scheduler": {
+      "main": [
+        [
+          {
+            "node": "📱 Buffer API Scheduler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "📱 Buffer API Scheduler": {
+      "main": [
+        [
+          {
+            "node": "📋 Save Scheduled Posts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2025-01-20T00:00:00.000Z",
+      "updatedAt": "2025-01-20T00:00:00.000Z",
+      "id": "smart-ai-agent",
+      "name": "Smart AI Agent"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2025-01-20T00:00:00.000Z",
+  "versionId": "smart-v2.0"
+}

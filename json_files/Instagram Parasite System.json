@@ -29,10 +29,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        220,
-        0
-      ],
+      "position": [220, 0],
       "id": "c55c87f0-868c-4d3a-a0ca-43cc7191cb32",
       "name": "Run Actor Synchronously"
     },
@@ -43,10 +40,7 @@
       },
       "type": "n8n-nodes-base.limit",
       "typeVersion": 1,
-      "position": [
-        440,
-        0
-      ],
+      "position": [440, 0],
       "id": "df030281-6513-45a2-9c72-b1e59ee4c4b6",
       "name": "Limit"
     },
@@ -77,10 +71,7 @@
       },
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.6,
-      "position": [
-        1620,
-        0
-      ],
+      "position": [1620, 0],
       "id": "8a0ea140-f361-4208-be52-c1dcb91270a7",
       "name": "Filter & Generate Suggestions",
       "credentials": {
@@ -118,10 +109,7 @@
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [
-        640,
-        -160
-      ],
+      "position": [640, -160],
       "id": "8dbcc1b2-2bc7-4d4f-bc38-8f2b6384abcf",
       "name": "Search for Entries",
       "alwaysOutputData": false,
@@ -141,10 +129,7 @@
       },
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3,
-      "position": [
-        820,
-        0
-      ],
+      "position": [820, 0],
       "id": "e2b81a84-6724-4757-8991-a62610943ea0",
       "name": "Drop Duplicates"
     },
@@ -184,9 +169,7 @@
             "username": "={{ $json.ownerUsername }}",
             "videoDuration": "={{ $json.videoDuration }}"
           },
-          "matchingColumns": [
-            "id"
-          ],
+          "matchingColumns": ["id"],
           "schema": [
             {
               "id": "timestamp",
@@ -500,10 +483,7 @@
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [
-        1020,
-        0
-      ],
+      "position": [1020, 0],
       "id": "a2650df2-9375-40ec-9ede-115cd692c9ca",
       "name": "Add Entries",
       "credentials": {
@@ -520,10 +500,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        1240,
-        0
-      ],
+      "position": [1240, 0],
       "id": "d5f3e37e-af9f-4eee-b184-67104708539b",
       "name": "Download Video"
     },
@@ -535,10 +512,7 @@
       },
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.6,
-      "position": [
-        1440,
-        0
-      ],
+      "position": [1440, 0],
       "id": "be8bc4fc-de39-41e4-bdda-fa6988b4db71",
       "name": "Transcribe Video",
       "credentials": {
@@ -561,7 +535,7 @@
             },
             {
               "name": "Authorization",
-              "value": "Bearer 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"
+              "value": "Bearer YOUR_PERPLEXITY_API_KEY"
             }
           ]
         },
@@ -576,10 +550,7 @@
       },
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [
-        1980,
-        0
-      ],
+      "position": [1980, 0],
       "id": "71217539-540a-447d-9890-76b2b6b32986",
       "name": "Search Perplexity"
     },
@@ -619,10 +590,7 @@
       },
       "type": "@n8n/n8n-nodes-langchain.openAi",
       "typeVersion": 1.6,
-      "position": [
-        2180,
-        0
-      ],
+      "position": [2180, 0],
       "id": "3c8706bb-6796-4b02-83a8-b8e39e6e91dd",
       "name": "Write New Script",
       "credentials": {
@@ -644,10 +612,7 @@
       },
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [
-        20,
-        0
-      ],
+      "position": [20, 0],
       "id": "c2e95c8b-cd40-45fd-9b4a-3c7a3c2c35c0",
       "name": "Schedule Trigger"
     },
@@ -675,9 +640,7 @@
             "scrapedTranscript": "={{ $('Transcribe Video').item.json.text }}",
             "newTranscript": "={{ $json.message.content.script }}"
           },
-          "matchingColumns": [
-            "id"
-          ],
+          "matchingColumns": ["id"],
           "schema": [
             {
               "id": "timestamp",
@@ -1005,10 +968,7 @@
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.5,
-      "position": [
-        2540,
-        0
-      ],
+      "position": [2540, 0],
       "id": "c91557c0-1051-42bd-bdbb-484995bdda84",
       "name": "Update Entries",
       "credentials": {

@@ -1,5 +1,5 @@
 {
-  "name": "Smart AI Agent Social Media - Proper AI Agent Structure",
+  "name": "Smart AI Agent Social Media - Complete Fixed",
   "nodes": [
     {
       "parameters": {
@@ -9,7 +9,7 @@
       "id": "telegram-trigger",
       "name": "📱 Telegram Trigger",
       "type": "n8n-nodes-base.telegramTrigger",
-      "typeVersion": 1,
+      "typeVersion": 1.2,
       "position": [200, 400],
       "credentials": {
         "telegramApi": {
@@ -17,6 +17,32 @@
           "name": "Telegram Bot API"
         }
       }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "chat_input",
+              "name": "chat_input",
+              "value": "={{$json.message.text || ''}}",
+              "type": "string"
+            },
+            {
+              "id": "message_data",
+              "name": "message",
+              "value": "={{$json.message}}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "telegram-to-agent",
+      "name": "🔄 Telegram to Agent Format",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [350, 400]
     },
     {
       "parameters": {
@@ -29,8 +55,8 @@
       "id": "openai-chat-model",
       "name": "🤖 OpenAI Chat Model",
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
-      "typeVersion": 1,
-      "position": [300, 300],
+      "typeVersion": 1.1,
+      "position": [450, 300],
       "credentials": {
         "openAiApi": {
           "id": "openai-api-key",
@@ -62,8 +88,8 @@
       "id": "content-analyzer-tool",
       "name": "🔍 Content Analyzer Tool",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
-      "typeVersion": 1,
-      "position": [300, 250]
+      "typeVersion": 1.1,
+      "position": [450, 250]
     },
     {
       "parameters": {
@@ -85,8 +111,8 @@
       "id": "style-detector-tool",
       "name": "🎨 Style Detector Tool",
       "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
-      "typeVersion": 1,
-      "position": [300, 350]
+      "typeVersion": 1.1,
+      "position": [450, 350]
     },
     {
       "parameters": {
@@ -95,8 +121,8 @@
       "id": "buffer-memory",
       "name": "🧠 Buffer Memory",
       "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
-      "typeVersion": 1,
-      "position": [300, 450]
+      "typeVersion": 1.1,
+      "position": [450, 450]
     },
     {
       "parameters": {
@@ -108,8 +134,8 @@
       "id": "ai-agent",
       "name": "🧠 Smart AI Agent",
       "type": "@n8n/n8n-nodes-langchain.agent",
-      "typeVersion": 2.2,
-      "position": [500, 400]
+      "typeVersion": 1.1,
+      "position": [600, 400]
     },
     {
       "parameters": {
@@ -130,7 +156,7 @@
             {
               "id": "user_input",
               "name": "userInput",
-              "value": "={{$json.message.text || ''}}",
+              "value": "={{$json.chat_input || ''}}",
               "type": "string"
             },
             {
@@ -164,8 +190,8 @@
       "id": "data-extractor",
       "name": "📊 Data Extractor",
       "type": "n8n-nodes-base.set",
-      "typeVersion": 3.3,
-      "position": [700, 400]
+      "typeVersion": 3.4,
+      "position": [800, 400]
     },
     {
       "parameters": {
@@ -174,8 +200,8 @@
       "id": "smart-analyzer",
       "name": "🔍 Smart Content Analyzer",
       "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [900, 400]
+      "typeVersion": 2.1,
+      "position": [1000, 400]
     },
     {
       "parameters": {
@@ -184,8 +210,8 @@
       "id": "content-formatter",
       "name": "🎨 Advanced Content Formatter",
       "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1100, 400]
+      "typeVersion": 2.1,
+      "position": [1200, 400]
     },
     {
       "parameters": {
@@ -219,8 +245,8 @@
       "id": "save-processing-log",
       "name": "📊 Save Processing Log",
       "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4,
-      "position": [1300, 300],
+      "typeVersion": 4.4,
+      "position": [1400, 300],
       "credentials": {
         "googleSheetsApi": {
           "id": "google-sheets-api",
@@ -235,8 +261,8 @@
       "id": "buffer-splitter",
       "name": "🎲 Smart Buffer Scheduler",
       "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [1300, 500]
+      "typeVersion": 2.1,
+      "position": [1400, 500]
     },
     {
       "parameters": {
@@ -275,8 +301,8 @@
       "id": "buffer-api",
       "name": "📱 Buffer API Scheduler",
       "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.1,
-      "position": [1500, 500],
+      "typeVersion": 4.2,
+      "position": [1600, 500],
       "credentials": {
         "bufferApi": {
           "id": "buffer-api-key",
@@ -313,8 +339,8 @@
       "id": "save-scheduled-posts",
       "name": "📋 Save Scheduled Posts",
       "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4,
-      "position": [1700, 500],
+      "typeVersion": 4.4,
+      "position": [1800, 500],
       "credentials": {
         "googleSheetsApi": {
           "id": "google-sheets-api",
@@ -333,8 +359,8 @@
       "id": "success-notification",
       "name": "✅ Success Notification",
       "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1,
-      "position": [1300, 700],
+      "typeVersion": 1.2,
+      "position": [1400, 700],
       "credentials": {
         "telegramApi": {
           "id": "telegram-bot-api",
@@ -353,8 +379,8 @@
       "id": "error-notification",
       "name": "❌ Error Notification",
       "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1,
-      "position": [900, 700],
+      "typeVersion": 1.2,
+      "position": [1000, 700],
       "credentials": {
         "telegramApi": {
           "id": "telegram-bot-api",
@@ -368,7 +394,27 @@
       "main": [
         [
           {
+            "node": "🔄 Telegram to Agent Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "🔄 Telegram to Agent Format": {
+      "main": [
+        [
+          {
             "node": "🧠 Smart AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ],
+      "error": [
+        [
+          {
+            "node": "❌ Error Notification",
             "type": "main",
             "index": 0
           }
@@ -558,11 +604,11 @@
     {
       "createdAt": "2025-01-20T00:00:00.000Z",
       "updatedAt": "2025-01-20T00:00:00.000Z",
-      "id": "smart-ai-agent-complete",
-      "name": "Smart AI Agent Complete"
+      "id": "smart-ai-agent-final",
+      "name": "Smart AI Agent Final"
     }
   ],
   "triggerCount": 1,
   "updatedAt": "2025-01-20T00:00:00.000Z",
-  "versionId": "smart-v4.0"
+  "versionId": "smart-v5.0"
 }

@@ -1,0 +1,1198 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "id": "e64002ba-17c8-46da-a74c-f29eccfba3d4",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [-528, 32],
+      "webhookId": "1b847b63-7348-4e5d-bd2c-9c1dae8aa9a1",
+      "credentials": {
+        "telegramApi": {
+          "id": "z3JFurXAjxXpjg4H",
+          "name": "alien_social"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Extract the user message from Telegram and determine message type\nconst message = $input.item.json.message?.text || '';\nconst chatId = $input.item.json.message?.chat?.id;\nconst userId = $input.item.json.message?.from?.id;\nconst userName = $input.item.json.message?.from?.first_name || 'User';\n\n// Clean and normalize the message\nconst cleanMessage = message.toLowerCase().trim();\n\n// Determine message type: confirmation or content idea\nlet messageType = 'content_idea';\nlet confirmationAction = null;\n\n// Check for confirmation keywords\nif (['yes', 'oui', 'ok', 'confirm', 'confirmer', 'valider', 'y'].includes(cleanMessage)) {\n  messageType = 'confirmation';\n  confirmationAction = 'confirm';\n} else if (['no', 'non', 'cancel', 'annuler', 'n'].includes(cleanMessage)) {\n  messageType = 'confirmation';\n  confirmationAction = 'cancel';\n} else if (['retry', 'regenerate', 'refaire', 'recommencer', 'retry', 'r'].includes(cleanMessage)) {\n  messageType = 'confirmation';\n  confirmationAction = 'regenerate';\n} else if (cleanMessage.length < 5) {\n  // Very short messages are likely confirmations we didn't catch\n  messageType = 'unclear';\n}\n\n// Store message info\nreturn {\n  original_message: message,\n  user_prompt: message,\n  chat_id: chatId,\n  user_id: userId,\n  user_name: userName,\n  message_type: messageType,\n  confirmation_action: confirmationAction,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "bbf7ee20-c98f-4e0b-8ae5-8c4e92dbd6d7",
+      "name": "Extract Message & Route",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-304, 32]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "message-type-condition",
+              "leftValue": "={{ $json.message_type }}",
+              "rightValue": "content_idea",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "20b3755c-f464-439d-81aa-91015c04c2fe",
+      "name": "Route Message Type",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-128, -144]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Tu es un expert en création de contenu social media français. Tu dois créer EXACTEMENT 20 posts courts pour Facebook qui explorent DIFFÉRENTS ANGLES du même thème principal donné par l'utilisateur.\n\n🚨 RÈGLE ABSOLUE DE LONGUEUR - CHAQUE POST DOIT FAIRE MINIMUM 80 CARACTÈRES ! 🚨\n\nOBJECTIF : Générer 20 posts de 80-120 caractères pour que le système en sélectionne 5-10.\n\n❌ TROP COURT (à éviter) :\n❌ 50 caractères : \"Tes choix sont ta boussole.\" - TROP COURT !\n❌ 60 caractères : \"Un choix aujourd'hui, une conséquence demain.\" - TROP COURT !\n❌ 70 caractères : \"Choisir, c'est comme planter des graines pour demain.\" - ENCORE TROP COURT !\n\n\nSTRUCTURE OBLIGATOIRE POUR CHAQUE POST :\n🔢 COMPTE D'ABORD LES CARACTÈRES AVANT D'ÉCRIRE\n🔢 SI C'EST MOINS DE 80, AJOUTE DES MOTS\n🔢 VISE 90-110 CARACTÈRES POUR ÊTRE SÛR\n\nCONTRAINTES IMPORTANTES :\n1. Génère EXACTEMENT 20 posts (POST 1 à POST 20)\n2. Posts principaux : OBLIGATOIREMENT 80-120 caractères\n3. Commentaires : 5-12 phrases explicatives DÉTAILLÉES\n4. TOUS LES POSTS doivent être des VARIATIONS du même thème central\n5. Explore différents angles, métaphores, exemples du MÊME sujet\n6. Style varié : sarcasme, humour, profondeur, réflexion, provocateur\n7. Langue : Français uniquement - MOTS SIMPLES ET FACILES\n8. Posts AUTONOMES : chaque post doit être compréhensible sans le commentaire\n\n\nSTRUCTURE DE RÉPONSE (EXACTEMENT 20 POSTS) :\n```\n=== POST 1 ===\nPOST: [Phrase de 80-120 caractères EXACTEMENT - compte chaque caractère !]\nCOMMENTAIRE: [5-12 phrases détaillées avec exemples concrets]\nTAGS: [3-5 hashtags simples]\n\n=== POST 2 ===\nPOST: [Phrase de 80-120 caractères EXACTEMENT - différent angle du même thème !]\nCOMMENTAIRE: [5-12 phrases détaillées avec exemples concrets]\nTAGS: [3-5 hashtags simples]\n\n[... continue jusqu'à POST 20]\n```\n\n🚨 RAPPEL FINAL : CHAQUE POST DOIT ABSOLUMENT FAIRE 80 CARACTÈRES MINIMUM !\nSi tu écris un post de moins de 80 caractères, AJOUTE DES MOTS jusqu'à atteindre 80-120 !\n\nTOUS les 20 posts doivent explorer le MÊME thème avec des ANGLES DIFFÉRENTS et faire MINIMUM 80 CARACTÈRES !",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.user_prompt }}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 6000,
+          "temperature": 0.8
+        }
+      },
+      "id": "9802ebe6-e8a2-44d4-af16-3350cb8a7a02",
+      "name": "AI Content Generator",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [64, -208],
+      "credentials": {
+        "openAiApi": {
+          "id": "8F0Y4lHN8Axqwr3j",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Parse AI response and structure the content - GENERATE 20, SELECT BEST 5-10\nlet aiResponse;\n\n// Debug: Log the raw response structure\nconsole.log('Raw AI Response:', JSON.stringify($input.item.json, null, 2));\n\n// Handle different LangChain response structures\nif ($input.item.json.message && $input.item.json.message.content) {\n  aiResponse = $input.item.json.message.content;\n} else if ($input.item.json.choices && $input.item.json.choices[0]) {\n  aiResponse = $input.item.json.choices[0].message.content;\n} else if ($input.item.json.text) {\n  aiResponse = $input.item.json.text;\n} else if ($input.item.json.content) {\n  aiResponse = $input.item.json.content;\n} else if (typeof $input.item.json === 'string') {\n  aiResponse = $input.item.json;\n} else {\n  aiResponse = JSON.stringify($input.item.json);\n}\n\nconsole.log('Extracted AI Response:', aiResponse);\n\nconst originalPrompt = $input.item.json.user_prompt || $('Extract Message & Route').item.json.user_prompt;\nconst chatId = $('Extract Message & Route').item.json.chat_id;\nconst userId = $('Extract Message & Route').item.json.user_id;\n\n// Extract posts using regex - handle different formats\nconst postPattern = /=== POST (\\d+) ===\\s*(?:POST:\\s*)?(.+?)\\s*COMMENTAIRE:\\s*(.+?)\\s*TAGS:\\s*(.+?)(?=\\s*===\\s*POST|$)/gs;\nconst allPosts = [];\nlet match;\n\nwhile ((match = postPattern.exec(aiResponse)) !== null) {\n  const content = match[2].trim();\n  const characterCount = content.length;\n  \n  // More lenient validation (75-120 characters) to get more posts through\n  const isValid = characterCount >= 75 && characterCount <= 120;\n  \n  allPosts.push({\n    post_number: parseInt(match[1]),\n    content: content,\n    comment: match[3].trim(),\n    tags: match[4].trim().split(/[,\\s#]+/).filter(tag => tag.length > 0).map(tag => tag.startsWith('#') ? tag : '#' + tag),\n    character_count: characterCount,\n    valid: isValid,\n    rejection_reason: isValid ? null : characterCount < 75 ? `trop court (manque ${75 - characterCount})` : `trop long (${characterCount - 120} en trop)`\n  });\n}\n\n// If regex fails, try alternative parsing\nif (allPosts.length === 0) {\n  console.log('Regex failed, trying alternative parsing...');\n  const lines = aiResponse.split('\\n').filter(line => line.trim());\n  let currentPost = null;\n  \n  lines.forEach((line, index) => {\n    console.log(`Line ${index}: ${line}`);\n    \n    if (line.includes('POST:') || (line.includes('POST') && line.includes('==='))) {\n      if (currentPost && currentPost.content) {\n        // Validate before adding\n        const characterCount = currentPost.content.length;\n        currentPost.character_count = characterCount;\n        currentPost.valid = characterCount >= 75 && characterCount <= 120;\n        currentPost.rejection_reason = currentPost.valid ? null : characterCount < 75 ? `trop court (manque ${75 - characterCount})` : `trop long (${characterCount - 120} en trop)`;\n        allPosts.push(currentPost);\n      }\n      currentPost = {\n        post_number: allPosts.length + 1,\n        content: line.replace(/POST:/i, '').replace(/===/g, '').trim(),\n        comment: '',\n        tags: []\n      };\n    } else if (line.includes('COMMENTAIRE:')) {\n      if (currentPost) currentPost.comment = line.replace(/COMMENTAIRE:/i, '').trim();\n    } else if (line.includes('TAGS:')) {\n      if (currentPost) {\n        currentPost.tags = line.replace(/TAGS:/i, '').trim().split(/[,\\s#]+/)\n          .filter(tag => tag.length > 0)\n          .map(tag => tag.startsWith('#') ? tag : '#' + tag);\n      }\n    } else if (currentPost && !currentPost.content && line.trim().length > 0) {\n      currentPost.content = line.trim();\n    }\n  });\n  \n  if (currentPost && currentPost.content) {\n    const characterCount = currentPost.content.length;\n    currentPost.character_count = characterCount;\n    currentPost.valid = characterCount >= 75 && characterCount <= 120;\n    currentPost.rejection_reason = currentPost.valid ? null : characterCount < 75 ? `trop court (manque ${75 - characterCount})` : `trop long (${characterCount - 120} en trop)`;\n    allPosts.push(currentPost);\n  }\n}\n\n// Filter and select the best posts\nconst validPosts = allPosts.filter(post => post.valid);\nconst invalidPosts = allPosts.filter(post => !post.valid);\n\n// Select the best 5-10 valid posts (prefer those closer to 90-100 characters)\nconst selectedPosts = validPosts\n  .sort((a, b) => {\n    // Prefer posts closer to 90-100 characters (sweet spot)\n    const scoreA = Math.abs(95 - a.character_count);\n    const scoreB = Math.abs(95 - b.character_count);\n    return scoreA - scoreB;\n  })\n  .slice(0, 5); // Take best 10 max\n\nconsole.log(`Generated: ${allPosts.length}, Valid: ${validPosts.length}, Selected: ${selectedPosts.length}, Invalid: ${invalidPosts.length}`);\n\nif (invalidPosts.length > 0) {\n  console.log('Invalid posts details:', JSON.stringify(invalidPosts.map(p => ({content: p.content.substring(0, 50), chars: p.character_count, reason: p.rejection_reason})), null, 2));\n}\n\n// Generate preview for Telegram\nlet preview = `🎯 CONTENU GÉNÉRÉ - Validation automatique (75-120 caractères)\\n`;\npreview += `📊 Stats: ${allPosts.length} générés | ${validPosts.length} valides | ${selectedPosts.length} sélectionnés\\n\\n`;\n\nif (selectedPosts.length > 0) {\n  selectedPosts.forEach((post, index) => {\n    preview += `📝 POST ${index + 1} (${post.character_count} car.):\\n`;\n    preview += `\"${post.content}\"\\n\\n`;\n    preview += `💬 ${post.comment}\\n\\n`;\n    preview += `🏷️ ${post.tags.join(' ')}\\n\\n⸻\\n\\n`;\n  });\n  \n  preview += `✅ POUR CONFIRMER: Écris \"yes\" ou \"oui\"\\n`;\n  preview += `❌ POUR ANNULER: Écris \"no\" ou \"cancel\"\\n`;\n  preview += `🔄 POUR RÉGÉNÉRER: Écris \"retry\" ou \"refaire\"`;\n} else if (validPosts.length > 0) {\n  // Fallback: show some valid posts even if none selected\n  preview += `⚠️ Aucun post parfait, voici les meilleurs disponibles:\\n\\n`;\n  validPosts.slice(0, 5).forEach((post, index) => {\n    preview += `📝 POST ${index + 1} (${post.character_count} car.):\\n`;\n    preview += `\"${post.content}\"\\n\\n`;\n    preview += `💬 ${post.comment}\\n\\n`;\n    preview += `🏷️ ${post.tags.join(' ')}\\n\\n⸻\\n\\n`;\n  });\n  \n  preview += `✅ POUR CONFIRMER: Écris \"yes\" ou \"oui\"\\n`;\n  preview += `❌ POUR ANNULER: Écris \"no\" ou \"cancel\"\\n`;\n  preview += `🔄 POUR RÉGÉNÉRER: Écris \"retry\" ou \"refaire\"`;\n} else {\n  preview += `❌ Aucun post valide généré. Essayez avec un prompt plus détaillé.\\n`;\n  preview += `🔄 POUR RÉESSAYER: Envoyez un nouveau prompt`;\n}\n\n// Store posts data directly with chat_id as key for better persistence\nconst postsData = {\n  original_prompt: originalPrompt,\n  posts: selectedPosts.length > 0 ? selectedPosts : validPosts.slice(0, 5),\n  chat_id: chatId,\n  user_id: userId,\n  generation_timestamp: new Date().toISOString()\n};\n\nreturn {\n  original_prompt: originalPrompt,\n  ai_response: aiResponse,\n  posts: selectedPosts.length > 0 ? selectedPosts : validPosts.slice(0, 5),\n  all_generated_posts: allPosts,\n  valid_posts: validPosts,\n  invalid_posts: invalidPosts,\n  posts_count: selectedPosts.length > 0 ? selectedPosts.length : Math.min(validPosts.length, 5),\n  total_generated: allPosts.length,\n  selection_stats: {\n    generated: allPosts.length,\n    valid: validPosts.length,\n    selected: selectedPosts.length,\n    rejected: invalidPosts.length,\n    validation_criteria: '75-120 caractères'\n  },\n  preview_message: preview,\n  chat_id: chatId,\n  user_id: userId,\n  generation_timestamp: new Date().toISOString(),\n  // Store the posts data in the output for the next step to access\n  posts_data: postsData\n};"
+      },
+      "id": "883ab516-fd16-4da4-98c9-b474c97ea1d3",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [528, -192]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1ibJ_ajHvEo9YpNel2zqOmluvLR5fODaJh4hIZIGmzg8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Staging",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ibJ_ajHvEo9YpNel2zqOmluvLR5fODaJh4hIZIGmzg8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "chat_id": "={{ $json.chat_id }}",
+            "user_id": "={{ $json.user_id }}",
+            "original_prompt": "={{ $json.original_prompt }}",
+            "posts_json": "={{ JSON.stringify($json.posts) }}",
+            "generation_timestamp": "={{ $json.generation_timestamp }}",
+            "status": "pending_confirmation",
+            "ai_response": "={{ $json.ai_response }}",
+            "posts": "={{ JSON.stringify($json.posts) }}",
+            "all_generated_posts": "={{ JSON.stringify($json.all_generated_posts) }}",
+            "valid_posts": "={{ JSON.stringify($json.valid_posts) }}",
+            "invalid_posts": "={{ JSON.stringify($json.invalid_posts) }}",
+            "posts_count": "={{ $json.posts_count }}",
+            "total_generated": "={{ $json.total_generated }}",
+            "selection_stats": "={{ JSON.stringify($json.selection_stats) }}",
+            "preview_message": "={{ $json.preview_message }}",
+            "posts_data": "={{ JSON.stringify($json.posts_data) }}"
+          },
+          "matchingColumns": ["chat_id"],
+          "schema": [
+            {
+              "id": "chat_id",
+              "displayName": "chat_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "user_id",
+              "displayName": "user_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "original_prompt",
+              "displayName": "original_prompt",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "posts_json",
+              "displayName": "posts_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "generation_timestamp",
+              "displayName": "generation_timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ai_response",
+              "displayName": "ai_response",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "posts",
+              "displayName": "posts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "all_generated_posts",
+              "displayName": "all_generated_posts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "valid_posts",
+              "displayName": "valid_posts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "invalid_posts",
+              "displayName": "invalid_posts",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "posts_count",
+              "displayName": "posts_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "total_generated",
+              "displayName": "total_generated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "selection_stats",
+              "displayName": "selection_stats",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "preview_message",
+              "displayName": "preview_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "posts_data",
+              "displayName": "posts_data",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "f553798d-7b62-4b18-9446-a41903c1f771",
+      "name": "Store Staging Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [912, -176],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "khPKXm7h55a6o2W3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.preview_message }}",
+        "additionalFields": {}
+      },
+      "id": "7fc51a86-3c0c-48a0-9841-4bba728d9254",
+      "name": "Send Preview to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1296, -176],
+      "webhookId": "1e525977-8686-4251-ad99-cc203933bd37",
+      "credentials": {
+        "telegramApi": {
+          "id": "z3JFurXAjxXpjg4H",
+          "name": "alien_social"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ibJ_ajHvEo9YpNel2zqOmluvLR5fODaJh4hIZIGmzg8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Staging",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ibJ_ajHvEo9YpNel2zqOmluvLR5fODaJh4hIZIGmzg8/edit#gid=0"
+        },
+        "options": {}
+      },
+      "id": "23aabb49-8637-457d-921e-19c0ab13d5bb",
+      "name": "Get Staging Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [-176, 192],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "khPKXm7h55a6o2W3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "confirmation-condition",
+              "leftValue": "={{ $json.message_type }}",
+              "rightValue": "confirmation",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "650338ee-def9-4718-b1f7-4cac195e939c",
+      "name": "Check If Confirmation",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [528, 160]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "chat-id-match",
+              "leftValue": "={{ $json.chat_id }}",
+              "rightValue": "={{ $('Extract Message & Route').item.json.chat_id }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "33f756ab-ea7a-4878-bb21-e224adee5d1a",
+      "name": "Filter Staging Data",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [288, 192]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Process confirmation response using filtered Google Sheets staging data\nconst chatId = $('Extract Message & Route').item.json.chat_id;\nconst userId = $('Extract Message & Route').item.json.user_id;\nconst action = $('Extract Message & Route').item.json.confirmation_action;\n\nconsole.log('Processing confirmation:', { chatId, userId, action });\n\n// Get staging data from Google Sheets (already filtered for this chat_id)\nconst stagingData = $input.item.json;\nconsole.log('Staging data received:', Object.keys(stagingData));\n\nlet postsData = null;\n\ntry {\n  // Parse the JSON posts data\n  const posts = JSON.parse(stagingData.posts_json || '[]');\n  \n  postsData = {\n    original_prompt: stagingData.original_prompt || '',\n    posts: posts,\n    chat_id: stagingData.chat_id,\n    user_id: stagingData.user_id,\n    generation_timestamp: stagingData.generation_timestamp\n  };\n  \n  console.log('Found posts data from Google Sheets:', {\n    postsCount: posts.length,\n    originalPrompt: stagingData.original_prompt ? stagingData.original_prompt.substring(0, 50) : 'none'\n  });\n} catch (error) {\n  console.log('Error parsing posts JSON:', error.message);\n}\n\n// If no posts data found, return helpful error\nif (!postsData) {\n  console.log('No posts data found for chat:', chatId);\n  \n  return {\n    action: action,\n    chat_id: chatId,\n    user_id: userId,\n    posts: [],\n    original_prompt: '',\n    error: 'no_posts_data',\n    error_message: 'Aucune donnée de posts trouvée. Pour utiliser la confirmation, vous devez d\\'abord:\\n\\n1️⃣ Envoyer une idée de contenu\\n2️⃣ Attendre la génération des posts\\n3️⃣ Puis répondre \"yes\", \"no\" ou \"retry\"\\n\\n🔄 Veuillez recommencer en envoyant une nouvelle idée de contenu.',\n    action_timestamp: new Date().toISOString()\n  };\n}\n\nreturn {\n  action: action,\n  chat_id: chatId,\n  user_id: userId,\n  posts: postsData.posts || [],\n  original_prompt: postsData.original_prompt || '',\n  staging_chat_id: stagingData.chat_id, // Keep this for cleanup\n  action_timestamp: new Date().toISOString()\n};"
+      },
+      "id": "ca4be133-7125-439d-8a34-7abd369ef24e",
+      "name": "Process Confirmation",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [240, 16]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "confirm-action-condition",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "confirm",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "rightType": "any"
+              }
+            },
+            {
+              "id": "no-error-condition",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "155883f2-2496-401e-a096-135390654e4d",
+      "name": "Route Confirmation Action",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [736, 16]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Generate random posting schedule\nconst posts = $input.item.json.posts || [];\nconst now = new Date();\nconst scheduledPosts = [];\n\n// Helper function to get random hour between ranges\nfunction getRandomHour() {\n  const morningHours = [7, 8, 9, 10];\n  const afternoonHours = [12, 13, 14, 15];\n  const eveningHours = [18, 19, 20, 21];\n  \n  const allHours = [...morningHours, ...afternoonHours, ...eveningHours];\n  return allHours[Math.floor(Math.random() * allHours.length)];\n}\n\n// Helper function to get random future date (1-7 days)\nfunction getRandomFutureDate() {\n  const futureDate = new Date(now);\n  futureDate.setDate(now.getDate() + Math.floor(Math.random() * 7) + 1);\n  return futureDate;\n}\n\n// If no posts, return error\nif (posts.length === 0) {\n  throw new Error('Aucun post trouvé pour la programmation');\n}\n\nposts.forEach((post, index) => {\n  const postDate = getRandomFutureDate();\n  postDate.setHours(getRandomHour(), Math.floor(Math.random() * 60), 0, 0);\n  \n  const generateId = () => {\n    return 'POST_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);\n  };\n\n  scheduledPosts.push({\n    id: generateId(),\n    is_posted: false,\n    posted_on: null,\n    scheduled_for: postDate.toISOString(),\n    content: post.content,\n    comment: post.comment,\n    tags: Array.isArray(post.tags) ? post.tags.join(',') : post.tags || '',\n    media: null,\n    to_post_on: 'Facebook',\n    content_type: 'Background Post',\n    engagement_score: null,\n    created_by: $input.item.json.user_id,\n    created_at: now.toISOString(),\n    last_updated: now.toISOString(),\n    status: 'scheduled',\n    topic: $input.item.json.original_prompt?.substring(0, 100) || 'General',\n    character_count: post.content?.length || 0,\n    priority: Math.floor(Math.random() * 3) + 1,\n    target_audience: 'General',\n    call_to_action: 'Engage',\n    post_category: 'Motivational'\n  });\n});\n\n// Clean up session data\nif ($input.item.json.session_id && $env.posts_data) {\n  delete $env.posts_data[$input.item.json.session_id];\n}\nif ($input.item.json.chat_id && $env.chat_sessions) {\n  delete $env.chat_sessions[$input.item.json.chat_id];\n}\n\nreturn {\n  scheduled_posts: scheduledPosts,\n  total_posts: scheduledPosts.length,\n  chat_id: $input.item.json.chat_id\n};"
+      },
+      "id": "f5f2a2bf-ac6e-4847-bbfe-7ad463280611",
+      "name": "Generate Post Schedule",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [912, 192]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "scheduled_posts",
+        "options": {}
+      },
+      "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+      "name": "Split Posts Array",
+      "type": "n8n-nodes-base.itemLists",
+      "typeVersion": 3,
+      "position": [1152, 192]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1ibJ_ajHvEo9YpNel2zqOmluvLR5fODaJh4hIZIGmzg8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 990722625,
+          "mode": "list",
+          "cachedResultName": "Posts",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ibJ_ajHvEo9YpNel2zqOmluvLR5fODaJh4hIZIGmzg8/edit#gid=990722625"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id": "={{ $json.id }}",
+            "is_posted": "={{ $json.is_posted }}",
+            "posted_on": "={{ $json.posted_on }}",
+            "scheduled_for": "={{ $json.scheduled_for }}",
+            "content": "={{ $json.content }}",
+            "comment": "={{ $json.comment }}",
+            "tags": "={{ $json.tags }}",
+            "media": "={{ $json.media }}",
+            "to_post_on": "={{ $json.to_post_on }}",
+            "content_type": "={{ $json.content_type }}",
+            "engagement_score": "={{ $json.engagement_score }}",
+            "created_by": "={{ $json.created_by }}",
+            "created_at": "={{ $json.created_at }}",
+            "last_updated": "={{ $json.last_updated }}",
+            "status": "={{ $json.status }}",
+            "topic": "={{ $json.topic }}",
+            "character_count": "={{ $json.character_count }}",
+            "priority": "={{ $json.priority }}",
+            "target_audience": "={{ $json.target_audience }}",
+            "call_to_action": "={{ $json.call_to_action }}",
+            "post_category": "={{ $json.post_category }}"
+          },
+          "matchingColumns": ["id"],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "is_posted",
+              "displayName": "is_posted",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "boolean",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "posted_on",
+              "displayName": "posted_on",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "scheduled_for",
+              "displayName": "scheduled_for",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "content",
+              "displayName": "content",
+              "required": true,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "comment",
+              "displayName": "comment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "tags",
+              "displayName": "tags",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "media",
+              "displayName": "media",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "to_post_on",
+              "displayName": "to_post_on",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "content_type",
+              "displayName": "content_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "engagement_score",
+              "displayName": "engagement_score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "created_by",
+              "displayName": "created_by",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "last_updated",
+              "displayName": "last_updated",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "topic",
+              "displayName": "topic",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "character_count",
+              "displayName": "character_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "target_audience",
+              "displayName": "target_audience",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "call_to_action",
+              "displayName": "call_to_action",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            },
+            {
+              "id": "post_category",
+              "displayName": "post_category",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "739c7853-9304-4a71-b6d9-4ce29100db2c",
+      "name": "Add to Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1392, 192],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "khPKXm7h55a6o2W3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "clear",
+        "documentId": {
+          "__rl": true,
+          "value": "1ibJ_ajHvEo9YpNel2zqOmluvLR5fODaJh4hIZIGmzg8",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Staging",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ibJ_ajHvEo9YpNel2zqOmluvLR5fODaJh4hIZIGmzg8/edit#gid=0"
+        }
+      },
+      "id": "cb271375-8b59-4230-8fbc-158996d762a2",
+      "name": "Cleanup Staging Data",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [1632, 192],
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "khPKXm7h55a6o2W3",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Process Confirmation').item.json.chat_id }}",
+        "text": "✅ Parfait ! {{ $('Generate Post Schedule').item.json.total_posts }} posts ont été ajoutés au Google Sheet avec une programmation aléatoire.\\n\\n📊 Les posts seront publiés de manière espacée sur les prochains jours aux heures optimales.\\n\\n🔄 Tu peux maintenant créer d'autres contenus en envoyant une nouvelle idée !",
+        "additionalFields": {}
+      },
+      "id": "08026d80-3b03-40ec-a90d-ceb4bddc9877",
+      "name": "Confirmation Success Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1872, 192],
+      "webhookId": "888e1944-aded-4360-afd8-24859c64e954",
+      "credentials": {
+        "telegramApi": {
+          "id": "z3JFurXAjxXpjg4H",
+          "name": "alien_social"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "❌ Opération annulée. Tu peux recommencer avec un nouveau prompt quand tu veux !",
+        "additionalFields": {}
+      },
+      "id": "0fd7b4b9-1580-477b-adcd-95b1c2a846be",
+      "name": "Cancel Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [928, 576],
+      "webhookId": "b71d10a9-4ddf-40db-9e14-040e2c958ea6",
+      "credentials": {
+        "telegramApi": {
+          "id": "z3JFurXAjxXpjg4H",
+          "name": "alien_social"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.error_message }}",
+        "additionalFields": {}
+      },
+      "id": "d9343f5e-ecdc-4f93-886e-e4086f679894",
+      "name": "No Posts Error Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [944, 720],
+      "webhookId": "no-posts-error-webhook-id",
+      "credentials": {
+        "telegramApi": {
+          "id": "z3JFurXAjxXpjg4H",
+          "name": "alien_social"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "🔄 Régénération demandée. Veuillez envoyer un nouveau prompt pour créer de nouveaux posts !",
+        "additionalFields": {}
+      },
+      "id": "94b08c8e-26a9-4643-82f0-3c270a8d56cd",
+      "name": "Regenerate Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [1216, 384],
+      "webhookId": "regenerate-webhook-id",
+      "credentials": {
+        "telegramApi": {
+          "id": "z3JFurXAjxXpjg4H",
+          "name": "alien_social"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "error-check-condition",
+              "leftValue": "={{ $json.error }}",
+              "rightValue": "no_posts_data",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "71ed367c-4706-41a3-ac02-a019b28150e4",
+      "name": "Check For Error",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [608, 752]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "regenerate-condition",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "regenerate",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "6857238e-7d1a-4f00-8925-6f1b60e990e6",
+      "name": "Check Regenerate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [928, 400]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "❓ Je n'ai pas compris votre réponse. \\n\\nSi vous voulez :\\n✅ Confirmer les posts: tapez \"yes\" ou \"oui\"\\n❌ Annuler: tapez \"no\" ou \"cancel\"\\n🔄 Régénérer: tapez \"retry\" ou \"refaire\"\\n\\nOu envoyez une nouvelle idée de contenu pour commencer.",
+        "additionalFields": {}
+      },
+      "id": "08ce52e7-bd19-4cd3-a379-39a3591a6ab6",
+      "name": "Unclear Message Response",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [336, 528],
+      "webhookId": "unclear-webhook-id",
+      "credentials": {
+        "telegramApi": {
+          "id": "z3JFurXAjxXpjg4H",
+          "name": "alien_social"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Message & Route",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message & Route": {
+      "main": [
+        [
+          {
+            "node": "Route Message Type",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check If Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Message Type": {
+      "main": [
+        [
+          {
+            "node": "AI Content Generator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Unclear Message Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Content Generator": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Store Staging Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store Staging Data": {
+      "main": [
+        [
+          {
+            "node": "Send Preview to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Get Staging Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Staging Data": {
+      "main": [
+        [
+          {
+            "node": "Filter Staging Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Staging Data": {
+      "main": [
+        [
+          {
+            "node": "Process Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Posts Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Route Confirmation Action",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Regenerate",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check For Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Confirmation Action": {
+      "main": [
+        [
+          {
+            "node": "Generate Post Schedule",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cancel Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Post Schedule": {
+      "main": [
+        [
+          {
+            "node": "Split Posts Array",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Posts Array": {
+      "main": [
+        [
+          {
+            "node": "Add to Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Google Sheet": {
+      "main": [
+        [
+          {
+            "node": "Cleanup Staging Data",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cleanup Staging Data": {
+      "main": [
+        [
+          {
+            "node": "Confirmation Success Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Regenerate": {
+      "main": [
+        [
+          {
+            "node": "Regenerate Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check For Error": {
+      "main": [
+        [
+          {
+            "node": "No Posts Error Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "5d1df19c-8e79-4307-ab57-652ad5060a03",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a5e53a92e51c9979ed74d5ae90bc70ccf22454dbdfdc88327bf8a25907a2eadf"
+  },
+  "id": "svglMLC4i6NVZ8G3",
+  "tags": []
+}

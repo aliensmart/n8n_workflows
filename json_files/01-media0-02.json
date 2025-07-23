@@ -1,0 +1,494 @@
+{
+  "name": "My workflow 2 - Fixed",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": ["message"],
+        "additionalFields": {}
+      },
+      "id": "bb495132-3f48-4859-8e62-8b4a1462dbd0",
+      "name": "Telegram Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [-640, 304],
+      "webhookId": "1b847b63-7348-4e5d-bd2c-9c1dae8aa9a1",
+      "credentials": {
+        "telegramApi": {
+          "id": "z3JFurXAjxXpjg4H",
+          "name": "alien_social"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Extract the user message from Telegram\nconst message = $input.item.json.message?.text || '';\nconst chatId = $input.item.json.message?.chat?.id;\nconst userId = $input.item.json.message?.from?.id;\nconst userName = $input.item.json.message?.from?.first_name || 'User';\n\n// Store original message and user info\nreturn {\n  user_prompt: message,\n  chat_id: chatId,\n  user_id: userId,\n  user_name: userName,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "93ab9fd4-38ff-4d5c-92cc-76dcf8c46b76",
+      "name": "Extract Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-416, 304]
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o",
+          "mode": "list",
+          "cachedResultName": "GPT-4O"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "Tu es un expert en création de contenu social media français. Tu dois créer EXACTEMENT 20 posts courts pour Facebook qui explorent DIFFÉRENTS ANGLES du même thème principal donné par l'utilisateur.\n\n🚨 RÈGLE ABSOLUE DE LONGUEUR - CHAQUE POST DOIT FAIRE MINIMUM 80 CARACTÈRES ! 🚨\n\nOBJECTIF : Générer 20 posts de 80-120 caractères pour que le système en sélectionne 5-10.\n\n🔢 GUIDE DE LONGUEUR (EXEMPLES PRÉCIS) :\n✅ 80 caractères : \"Tu sais quoi ? Chaque petit choix que tu fais peut vraiment changer ta vie.\"\n✅ 90 caractères : \"C'est dingue comme on peut finir loin de ses rêves juste à cause de mauvais choix.\"\n✅ 100 caractères : \"Stop ! Arrête de penser que tes petites décisions comptent pas. Elles peuvent tout changer.\"\n✅ 110 caractères : \"Imagine un volant qui bouge de 2 mm. Au bout de 100 km, tu es complètement ailleurs. Pareil pour tes choix !\"\n✅ 120 caractères : \"Chaque matin, tu prends 50 petites décisions. Tu penses que c'est rien ? Eh bien, ça construit ta vie entière.\"\n\n❌ TROP COURT (à éviter) :\n❌ 50 caractères : \"Tes choix sont ta boussole.\" - TROP COURT !\n❌ 60 caractères : \"Un choix aujourd'hui, une conséquence demain.\" - TROP COURT !\n❌ 70 caractères : \"Choisir, c'est comme planter des graines pour demain.\" - ENCORE TROP COURT !\n\nCOMMENT ALLONGER TES POSTS :\n- Ajoute \"Tu sais quoi ?\" au début\n- Utilise \"C'est dingue comme...\"\n- Ajoute des exemples : \"Imagine...\", \"Par exemple...\"\n- Utilise des questions : \"Tu penses pas que...?\"\n- Développe l'idée : \"Et le pire dans tout ça...\"\n- Ajoute de l'émotion : \"C'est fou\", \"Stop !\", \"Attention\"\n\nSTRUCTURE OBLIGATOIRE POUR CHAQUE POST :\n🔢 COMPTE D'ABORD LES CARACTÈRES AVANT D'ÉCRIRE\n🔢 SI C'EST MOINS DE 80, AJOUTE DES MOTS\n🔢 VISE 90-110 CARACTÈRES POUR ÊTRE SÛR\n\nCONTRAINTES IMPORTANTES :\n1. Génère EXACTEMENT 20 posts (POST 1 à POST 20)\n2. Posts principaux : OBLIGATOIREMENT 80-120 caractères\n3. Commentaires : 5-12 phrases explicatives DÉTAILLÉES\n4. TOUS LES POSTS doivent être des VARIATIONS du même thème central\n5. Explore différents angles, métaphores, exemples du MÊME sujet\n6. Style varié : sarcasme, humour, profondeur, réflexion, provocateur\n7. Langue : Français uniquement - MOTS SIMPLES ET FACILES\n8. Posts AUTONOMES : chaque post doit être compréhensible sans le commentaire\n\nTECHNIQUES POUR ATTEINDRE 80+ CARACTÈRES :\n- \"Tu savais que...\" (12 caractères de base)\n- \"C'est fou comme...\" (16 caractères de base)\n- \"Stop ! Arrête de...\" (17 caractères de base)\n- \"Imagine si...\" (11 caractères de base)\n- \"Tu penses que c'est rien, mais...\" (32 caractères de base)\n- \"Et le pire dans tout ça, c'est que...\" (35 caractères de base)\n\nSTRUCTURE DE RÉPONSE (EXACTEMENT 20 POSTS) :\n```\n=== POST 1 ===\nPOST: [Phrase de 80-120 caractères EXACTEMENT - compte chaque caractère !]\nCOMMENTAIRE: [5-12 phrases détaillées avec exemples concrets]\nTAGS: [3-5 hashtags simples]\n\n=== POST 2 ===\nPOST: [Phrase de 80-120 caractères EXACTEMENT - différent angle du même thème !]\nCOMMENTAIRE: [5-12 phrases détaillées avec exemples concrets]\nTAGS: [3-5 hashtags simples]\n\n[... continue jusqu'à POST 20]\n```\n\n🚨 RAPPEL FINAL : CHAQUE POST DOIT ABSOLUMENT FAIRE 80 CARACTÈRES MINIMUM !\nSi tu écris un post de moins de 80 caractères, AJOUTE DES MOTS jusqu'à atteindre 80-120 !\n\nTOUS les 20 posts doivent explorer le MÊME thème avec des ANGLES DIFFÉRENTS et faire MINIMUM 80 CARACTÈRES !",
+              "role": "system"
+            },
+            {
+              "content": "={{ $json.user_prompt }}"
+            }
+          ]
+        },
+        "options": {
+          "maxTokens": 6000,
+          "temperature": 0.8
+        }
+      },
+      "id": "963ddd68-bb6b-4611-b548-3965e8807efe",
+      "name": "AI Content Generator",
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 1,
+      "position": [-176, 304],
+      "credentials": {
+        "openAiApi": {
+          "id": "8F0Y4lHN8Axqwr3j",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Parse AI response and structure the content - GENERATE 20, SELECT BEST 5-10\nlet aiResponse;\n\n// Debug: Log the raw response structure\nconsole.log('Raw AI Response:', JSON.stringify($input.item.json, null, 2));\n\n// Handle different LangChain response structures\nif ($input.item.json.message && $input.item.json.message.content) {\n  aiResponse = $input.item.json.message.content;\n} else if ($input.item.json.choices && $input.item.json.choices[0]) {\n  aiResponse = $input.item.json.choices[0].message.content;\n} else if ($input.item.json.text) {\n  aiResponse = $input.item.json.text;\n} else if ($input.item.json.content) {\n  aiResponse = $input.item.json.content;\n} else if (typeof $input.item.json === 'string') {\n  aiResponse = $input.item.json;\n} else {\n  aiResponse = JSON.stringify($input.item.json);\n}\n\nconsole.log('Extracted AI Response:', aiResponse);\n\nconst originalPrompt = $input.item.json.user_prompt || $('Extract Message').item.json.user_prompt;\n\n// Extract posts using regex - handle different formats\nconst postPattern = /=== POST (\\d+) ===\\s*(?:POST:\\s*)?(.+?)\\s*COMMENTAIRE:\\s*(.+?)\\s*TAGS:\\s*(.+?)(?=\\s*===\\s*POST|$)/gs;\nconst allPosts = [];\nlet match;\n\nwhile ((match = postPattern.exec(aiResponse)) !== null) {\n  const content = match[2].trim();\n  const characterCount = content.length;\n  \n  // More lenient validation (75-120 characters) to get more posts through\n  const isValid = characterCount >= 75 && characterCount <= 120;\n  \n  allPosts.push({\n    post_number: parseInt(match[1]),\n    content: content,\n    comment: match[3].trim(),\n    tags: match[4].trim().split(/[,\\s#]+/).filter(tag => tag.length > 0).map(tag => tag.startsWith('#') ? tag : '#' + tag),\n    character_count: characterCount,\n    valid: isValid,\n    rejection_reason: isValid ? null : characterCount < 75 ? `trop court (manque ${75 - characterCount})` : `trop long (${characterCount - 120} en trop)`\n  });\n}\n\n// If regex fails, try alternative parsing\nif (allPosts.length === 0) {\n  console.log('Regex failed, trying alternative parsing...');\n  const lines = aiResponse.split('\\n').filter(line => line.trim());\n  let currentPost = null;\n  \n  lines.forEach((line, index) => {\n    console.log(`Line ${index}: ${line}`);\n    \n    if (line.includes('POST:') || (line.includes('POST') && line.includes('==='))) {\n      if (currentPost && currentPost.content) {\n        // Validate before adding\n        const characterCount = currentPost.content.length;\n        currentPost.character_count = characterCount;\n        currentPost.valid = characterCount >= 75 && characterCount <= 120;\n        currentPost.rejection_reason = currentPost.valid ? null : characterCount < 75 ? `trop court (manque ${75 - characterCount})` : `trop long (${characterCount - 120} en trop)`;\n        allPosts.push(currentPost);\n      }\n      currentPost = {\n        post_number: allPosts.length + 1,\n        content: line.replace(/POST:/i, '').replace(/===/g, '').trim(),\n        comment: '',\n        tags: []\n      };\n    } else if (line.includes('COMMENTAIRE:')) {\n      if (currentPost) currentPost.comment = line.replace(/COMMENTAIRE:/i, '').trim();\n    } else if (line.includes('TAGS:')) {\n      if (currentPost) {\n        currentPost.tags = line.replace(/TAGS:/i, '').trim().split(/[,\\s#]+/)\n          .filter(tag => tag.length > 0)\n          .map(tag => tag.startsWith('#') ? tag : '#' + tag);\n      }\n    } else if (currentPost && !currentPost.content && line.trim().length > 0) {\n      currentPost.content = line.trim();\n    }\n  });\n  \n  if (currentPost && currentPost.content) {\n    const characterCount = currentPost.content.length;\n    currentPost.character_count = characterCount;\n    currentPost.valid = characterCount >= 75 && characterCount <= 120;\n    currentPost.rejection_reason = currentPost.valid ? null : characterCount < 75 ? `trop court (manque ${75 - characterCount})` : `trop long (${characterCount - 120} en trop)`;\n    allPosts.push(currentPost);\n  }\n}\n\n// Filter and select the best posts\nconst validPosts = allPosts.filter(post => post.valid);\nconst invalidPosts = allPosts.filter(post => !post.valid);\n\n// Select the best 5-10 valid posts (prefer those closer to 90-100 characters)\nconst selectedPosts = validPosts\n  .sort((a, b) => {\n    // Prefer posts closer to 90-100 characters (sweet spot)\n    const scoreA = Math.abs(95 - a.character_count);\n    const scoreB = Math.abs(95 - b.character_count);\n    return scoreA - scoreB;\n  })\n  .slice(0, 10); // Take best 10 max\n\nconsole.log(`Generated: ${allPosts.length}, Valid: ${validPosts.length}, Selected: ${selectedPosts.length}, Invalid: ${invalidPosts.length}`);\n\nif (invalidPosts.length > 0) {\n  console.log('Invalid posts details:', JSON.stringify(invalidPosts.map(p => ({content: p.content.substring(0, 50), chars: p.character_count, reason: p.rejection_reason})), null, 2));\n}\n\n// Generate preview for Telegram\nlet preview = `🎯 SÉLECTION AUTOMATIQUE (Validateur: 75-120 caractères)\\n`;\npreview += `📊 Généré: ${allPosts.length} | Valide: ${validPosts.length} | Sélectionné: ${selectedPosts.length} | Rejeté: ${invalidPosts.length}\\n\\n`;\n\nif (selectedPosts.length > 0) {\n  selectedPosts.forEach((post, index) => {\n    preview += `📝 POST ${index + 1} (${post.character_count} car.):\\n`;\n    preview += `${post.content}\\n\\n`;\n    preview += `💬 ${post.comment}\\n\\n`;\n    preview += `🏷️ ${post.tags.join(' ')}\\n\\n⸻\\n\\n`;\n  });\n} else if (validPosts.length > 0) {\n  // Fallback: show some valid posts even if none selected\n  preview += `⚠️ Aucun post parfait, mais voici les meilleurs disponibles:\\n\\n`;\n  validPosts.slice(0, 5).forEach((post, index) => {\n    preview += `📝 POST ${index + 1} (${post.character_count} car.):\\n`;\n    preview += `${post.content}\\n\\n`;\n    preview += `💬 ${post.comment}\\n\\n`;\n    preview += `🏷️ ${post.tags.join(' ')}\\n\\n⸻\\n\\n`;\n  });\n} else {\n  preview += `❌ Aucun post valide généré sur ${allPosts.length} tentatives.\\n\\n`;\n  if (invalidPosts.length > 0) {\n    preview += `📝 Analyse des échecs:\\n`;\n    \n    // Show stats about rejections\n    const tooShort = invalidPosts.filter(p => p.character_count < 75);\n    const tooLong = invalidPosts.filter(p => p.character_count > 120);\n    \n    if (tooShort.length > 0) {\n      preview += `🔸 ${tooShort.length} posts trop courts (< 75 caractères)\\n`;\n      const avgShort = Math.round(tooShort.reduce((sum, p) => sum + p.character_count, 0) / tooShort.length);\n      preview += `   Longueur moyenne: ${avgShort} caractères\\n`;\n    }\n    if (tooLong.length > 0) {\n      preview += `🔸 ${tooLong.length} posts trop longs (> 120 caractères)\\n`;\n    }\n    \n    preview += `\\n📝 Exemples de posts rejetés:\\n`;\n    invalidPosts.slice(0, 3).forEach((post, index) => {\n      preview += `• \"${post.content.substring(0, 40)}...\" - ${post.rejection_reason}\\n`;\n    });\n    \n    preview += `\\n💡 L'IA génère ${allPosts.length} posts mais aucun entre 75-120 caractères.\\n`;\n    preview += `🔧 Solution: Reformulez votre demande avec plus de détails et contexte.\\n`;\n  }\n}\n\n// Create unique session ID for this generation\nconst sessionId = 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);\n\n// Store posts data globally for later retrieval\n$env.posts_data = {\n  [sessionId]: {\n    original_prompt: originalPrompt,\n    posts: selectedPosts.length > 0 ? selectedPosts : validPosts.slice(0, 5),\n    chat_id: $('Extract Message').item.json.chat_id,\n    user_id: $('Extract Message').item.json.user_id,\n    generation_timestamp: new Date().toISOString()\n  }\n};\n\nreturn {\n  session_id: sessionId,\n  original_prompt: originalPrompt,\n  ai_response: aiResponse,\n  posts: selectedPosts.length > 0 ? selectedPosts : validPosts.slice(0, 5), // Fallback to valid posts\n  all_generated_posts: allPosts,\n  valid_posts: validPosts,\n  invalid_posts: invalidPosts,\n  posts_count: selectedPosts.length > 0 ? selectedPosts.length : Math.min(validPosts.length, 5),\n  total_generated: allPosts.length,\n  selection_stats: {\n    generated: allPosts.length,\n    valid: validPosts.length,\n    selected: selectedPosts.length,\n    rejected: invalidPosts.length,\n    validation_criteria: '75-120 caractères'\n  },\n  preview_message: preview,\n  chat_id: $('Extract Message').item.json.chat_id,\n  user_id: $('Extract Message').item.json.user_id,\n  generation_timestamp: new Date().toISOString()\n};"
+      },
+      "id": "4b98d285-0589-4215-accb-63b216d0d42b",
+      "name": "Parse AI Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [192, 128]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "={{ $json.preview_message }}",
+        "replyMarkup": "inlineKeyboard",
+        "inlineKeyboard": {
+          "rows": [
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "✅ Confirmer",
+                    "callbackData": "confirm_posts_{{ $json.session_id }}"
+                  },
+                  {
+                    "text": "❌ Annuler",
+                    "callbackData": "cancel_posts_{{ $json.session_id }}"
+                  }
+                ]
+              }
+            },
+            {
+              "row": {
+                "buttons": [
+                  {
+                    "text": "🔄 Régénérer",
+                    "callbackData": "regenerate_posts_{{ $json.session_id }}"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "additionalFields": {}
+      },
+      "id": "d6c55324-677e-454e-bca5-01b7611d25b6",
+      "name": "Send Preview to Telegram",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [400, 304],
+      "webhookId": "1e525977-8686-4251-ad99-cc203933bd37",
+      "credentials": {
+        "telegramApi": {
+          "id": "z3JFurXAjxXpjg4H",
+          "name": "alien_social"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "updates": ["callback_query"],
+        "additionalFields": {}
+      },
+      "id": "5fc8a67b-4186-42d6-8a55-d552ddba449f",
+      "name": "Telegram Callback Trigger",
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1,
+      "position": [-640, 608],
+      "webhookId": "f21dff45-b7bc-47ff-8640-374856345a89",
+      "credentials": {
+        "telegramApi": {
+          "id": "z3JFurXAjxXpjg4H",
+          "name": "alien_social"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "f7a8b9c0-1d2e-3f4a-5b6c-7d8e9f0a1b2c",
+              "leftValue": "={{ $json.callback_query?.data }}",
+              "rightValue": "confirm_posts",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "15be1569-9922-4efa-ba93-ed5272135bfd",
+      "name": "Check Action Type",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [-416, 608]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Process different callback actions\nconst callbackData = $input.item.json.callback_query?.data || '';\nconst chatId = $input.item.json.callback_query?.message?.chat?.id;\nconst userId = $input.item.json.callback_query?.from?.id;\n\n// Extract session ID from callback data\nconst sessionIdMatch = callbackData.match(/_([^_]+)$/);\nconst sessionId = sessionIdMatch ? sessionIdMatch[1] : null;\n\n// Determine action type\nlet action = 'unknown';\nif (callbackData.startsWith('confirm_posts')) {\n  action = 'confirm';\n} else if (callbackData.startsWith('cancel_posts')) {\n  action = 'cancel';\n} else if (callbackData.startsWith('regenerate_posts')) {\n  action = 'regenerate';\n}\n\n// Retrieve stored posts data\nlet postsData = null;\nif (sessionId && $env.posts_data && $env.posts_data[sessionId]) {\n  postsData = $env.posts_data[sessionId];\n}\n\nreturn {\n  action: action,\n  session_id: sessionId,\n  chat_id: chatId,\n  user_id: userId,\n  callback_data: callbackData,\n  posts: postsData?.posts || [],\n  original_prompt: postsData?.original_prompt || '',\n  action_timestamp: new Date().toISOString()\n};"
+      },
+      "id": "12ffa4e6-f4b2-4f79-9f24-63a25b974210",
+      "name": "Process Callback",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [-176, 512]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "confirm",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "route-action-switch",
+      "name": "Route Action",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [64, 512]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "// Generate random posting schedule\nconst posts = $input.item.json.posts || [];\nconst now = new Date();\nconst scheduledPosts = [];\n\n// Helper function to get random hour between ranges\nfunction getRandomHour() {\n  const morningHours = [7, 8, 9, 10];\n  const afternoonHours = [12, 13, 14, 15];\n  const eveningHours = [18, 19, 20, 21];\n  \n  const allHours = [...morningHours, ...afternoonHours, ...eveningHours];\n  return allHours[Math.floor(Math.random() * allHours.length)];\n}\n\n// Helper function to get random future date (1-7 days)\nfunction getRandomFutureDate() {\n  const futureDate = new Date(now);\n  futureDate.setDate(now.getDate() + Math.floor(Math.random() * 7) + 1);\n  return futureDate;\n}\n\n// If no posts, return error\nif (posts.length === 0) {\n  throw new Error('Aucun post trouvé pour la programmation');\n}\n\nposts.forEach((post, index) => {\n  const postDate = getRandomFutureDate();\n  postDate.setHours(getRandomHour(), Math.floor(Math.random() * 60), 0, 0);\n  \n  const generateId = () => {\n    return 'POST_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);\n  };\n\n  scheduledPosts.push({\n    id: generateId(),\n    is_posted: false,\n    posted_on: null,\n    scheduled_for: postDate.toISOString(),\n    content: post.content,\n    comment: post.comment,\n    tags: Array.isArray(post.tags) ? post.tags.join(',') : post.tags || '',\n    media: null,\n    to_post_on: 'Facebook',\n    content_type: 'Background Post',\n    engagement_score: null,\n    created_by: $input.item.json.user_id,\n    created_at: now.toISOString(),\n    last_updated: now.toISOString(),\n    status: 'scheduled',\n    topic: $input.item.json.original_prompt?.substring(0, 100) || 'General',\n    character_count: post.content?.length || 0,\n    priority: Math.floor(Math.random() * 3) + 1,\n    target_audience: 'General',\n    call_to_action: 'Engage',\n    post_category: 'Motivational'\n  });\n});\n\n// Clean up session data\nif ($input.item.json.session_id && $env.posts_data) {\n  delete $env.posts_data[$input.item.json.session_id];\n}\n\nreturn {\n  scheduled_posts: scheduledPosts,\n  total_posts: scheduledPosts.length,\n  chat_id: $input.item.json.chat_id\n};"
+      },
+      "id": "8c60ae5c-c210-4da4-8b69-1c813b0d3050",
+      "name": "Generate Post Schedule",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [304, 512]
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "Posts",
+          "mode": "list"
+        },
+        "options": {}
+      },
+      "id": "08729bbb-11c4-4968-be4d-7fc1791ca811",
+      "name": "Add to Google Sheet",
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4,
+      "position": [544, 512]
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "✅ Parfait ! {{ $('Generate Post Schedule').item.json.total_posts }} posts ont été ajoutés au Google Sheet avec une programmation aléatoire.\\n\\n📊 Les posts seront publiés de manière espacée sur les prochains jours aux heures optimales.\\n\\n🔄 Tu peux maintenant créer d'autres contenus !",
+        "additionalFields": {}
+      },
+      "id": "57d04ab5-e706-4b4b-95d0-5c0ae805d184",
+      "name": "Confirmation Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [784, 512],
+      "webhookId": "888e1944-aded-4360-afd8-24859c64e954",
+      "credentials": {
+        "telegramApi": {
+          "id": "z3JFurXAjxXpjg4H",
+          "name": "alien_social"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "❌ Opération annulée. Tu peux recommencer avec un nouveau prompt quand tu veux !",
+        "additionalFields": {}
+      },
+      "id": "b228611d-12b4-4a24-b90c-b0cde6755cc3",
+      "name": "Cancel Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [304, 704],
+      "webhookId": "b71d10a9-4ddf-40db-9e14-040e2c958ea6",
+      "credentials": {
+        "telegramApi": {
+          "id": "z3JFurXAjxXpjg4H",
+          "name": "alien_social"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.chat_id }}",
+        "text": "🔄 Régénération en cours... Veuillez envoyer un nouveau prompt pour créer de nouveaux posts !",
+        "additionalFields": {}
+      },
+      "id": "regenerate-message",
+      "name": "Regenerate Message",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1,
+      "position": [544, 704],
+      "webhookId": "regenerate-webhook-id",
+      "credentials": {
+        "telegramApi": {
+          "id": "z3JFurXAjxXpjg4H",
+          "name": "alien_social"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "id": "regen-condition-id",
+              "leftValue": "={{ $json.action }}",
+              "rightValue": "regenerate",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "rightType": "any"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "check-regenerate",
+      "name": "Check Regenerate",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2,
+      "position": [64, 704]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract Message": {
+      "main": [
+        [
+          {
+            "node": "AI Content Generator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Content Generator": {
+      "main": [
+        [
+          {
+            "node": "Parse AI Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse AI Response": {
+      "main": [
+        [
+          {
+            "node": "Send Preview to Telegram",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Callback Trigger": {
+      "main": [
+        [
+          {
+            "node": "Check Action Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Action Type": {
+      "main": [
+        [
+          {
+            "node": "Process Callback",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cancel Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Callback": {
+      "main": [
+        [
+          {
+            "node": "Route Action",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Check Regenerate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route Action": {
+      "main": [
+        [
+          {
+            "node": "Generate Post Schedule",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cancel Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Post Schedule": {
+      "main": [
+        [
+          {
+            "node": "Add to Google Sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Add to Google Sheet": {
+      "main": [
+        [
+          {
+            "node": "Confirmation Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Regenerate": {
+      "main": [
+        [
+          {
+            "node": "Regenerate Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "52d4727b-f14f-4764-bfe8-9ea81b440b09",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a5e53a92e51c9979ed74d5ae90bc70ccf22454dbdfdc88327bf8a25907a2eadf"
+  },
+  "id": "svglMLC4i6NVZ8G3",
+  "tags": []
+}
